@@ -31,13 +31,13 @@
               <span class="hide-menu">DATA</span>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link @if (request()->is('dashboard/kabupaten*')) active
+              <a class="sidebar-link @if (request()->is('dashboard/kecamatan*')) active
 
-              @endif" href="{{ route('kabupaten') }}" aria-expanded="false">
+              @endif" href="{{ route('kecamatan') }}" aria-expanded="false">
                 <span>
-                  <i class="ti ti-article"></i>
+                  <i class="ti ti-map"></i>
                 </span>
-                <span class="hide-menu">Kabupaten</span>
+                <span class="hide-menu">Kecamatan</span>
               </a>
             </li>
             <li class="sidebar-item">
