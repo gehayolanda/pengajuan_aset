@@ -15,6 +15,8 @@ Route::prefix('login')->middleware('guest')->group(function () {
     Route::post('/proses', [AuthController::class, 'loginProses'])->name('login-proses');
 });
 
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
 Route::prefix("dashboard")->middleware('auth')->group(function() {
     Route::get("/", [DashboardController::class,"index"])->name("dashboard");
     Route::get("/kecamatan", [KecamatanController::class,"index"])->name("kecamatan");
