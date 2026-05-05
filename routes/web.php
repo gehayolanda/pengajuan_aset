@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KecamatanController;
+use App\Http\Controllers\SekolahController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,6 +25,9 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
     Route::delete("/kecamatan/destroy/{id}", [KecamatanController::class,"destroy"])->name("kecamatan.destroy");
     Route::post('kecamatan/store', [KecamatanController::class, 'store'])->name('kecamatan.store');
 
+    Route::get('/sekolah', [SekolahController::class, 'index'])->name('sekolah');
+    Route::get('/sekolah/create', [SekolahController::class, 'create'])->name('sekolah.create');
+    Route::post('/sekolah/store', [SekolahController::class, 'store'])->name('sekolah.store');
 });
 // Route::get('/dashboard', function() {
 //     return view ('dashboard.index');

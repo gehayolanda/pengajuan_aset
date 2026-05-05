@@ -28,7 +28,7 @@
             </li>
             <li class="nav-small-cap">
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-              <span class="hide-menu">DATA</span>
+              <span class="hide-menu">MENU</span>
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link @if (request()->is('dashboard/kecamatan*')) active
@@ -41,7 +41,7 @@
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
+              <a class="sidebar-link @if(request()->is('dashboard/sekolah')) active @endif" href="{{ route('sekolah') }}" aria-expanded="false">
                 <span>
                   <i class="ti ti-alert-circle"></i>
                 </span>

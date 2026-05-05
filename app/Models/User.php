@@ -47,4 +47,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function sekolah()
+    {
+        return $this->hasMany(Sekolah::class, 'operator_id');
+    }
 }
