@@ -9,7 +9,7 @@ class KecamatanController extends Controller
 {
     public function index()
     {
-        $kecamatan = Kecamatan::with("kabupaten")->orderBy('id', 'asc')->get();
+        $kecamatan = Kecamatan::with("kabupaten")->paginate(10);
         return view('dashboard.kecamatan.index', compact('kecamatan'));
     }
 

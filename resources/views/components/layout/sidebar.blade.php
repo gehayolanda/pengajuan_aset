@@ -41,7 +41,7 @@
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link @if(request()->is('dashboard/sekolah')) active @endif" href="{{ route('sekolah') }}" aria-expanded="false">
+              <a class="sidebar-link @if(request()->is('dashboard/sekolah*')) active @endif" href="{{ route('sekolah') }}" aria-expanded="false">
                 <span>
                   <i class="ti ti-alert-circle"></i>
                 </span>

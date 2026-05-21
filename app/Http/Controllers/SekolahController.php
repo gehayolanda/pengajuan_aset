@@ -59,7 +59,13 @@ class SekolahController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $sekolah = Sekolah::findOrFail($id);
+
+        $kabupaten = Kabupaten::all();
+        $kecamatan = Kecamatan::all();
+        $operators = User::with('roles')->get();
+
+        return view('dashboard.sekolah.show', compact('sekolah', 'kabupaten', 'kecamatan', 'operators'));
     }
 
     /**
@@ -67,7 +73,13 @@ class SekolahController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $sekolah = Sekolah::findOrFail($id);
+
+        $kabupaten = Kabupaten::all();
+        $kecamatan = Kecamatan::all();
+        $operators = User::with('roles')->get();
+
+        return view('dashboard.sekolah.edit', compact('sekolah', 'kabupaten', 'kecamatan', 'operators'));
     }
 
     /**
@@ -75,7 +87,24 @@ class SekolahController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $sekolah = Sekolah::findOrFail($id);
+
+        $request->validate([
+            'nama_sekolah' => 'required|string',
+            'npsn_sekolah' => 'required|string|unique:sekolah,npsn_sekolah,' . $sekolah->id,
+            'alamat_sekolah' => 'required|string',
+            'kecamatan_id' => 'nullable|exists:kecamatan,id',
+            'kabupaten_id' => 'nullable|exists:kabupaten,id',
+            'jenjang_sekolah' => 'required|in:PAUD,SD,SMP',
+            'scope_pengelola' => 'required|in:kecamatan,kabupaten',
+            'operator_id' => 'required|exists:users,id',
+        ]);
+
+        $data = $request->all();
+        $sekolah->update($data);
+
+        return redirect()->route('sekolah')->with('success', 'Sekolah berhasil diperbaharui.');
+
     }
 
     /**
@@ -83,6 +112,9 @@ class SekolahController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $sekolah = Sekolah::findOrFail($id);
+        $sekolah->delete();
+
+        return redirect()->route('sekolah')->with('success', 'Sekolah berhasil dihapus.');
     }
 }
