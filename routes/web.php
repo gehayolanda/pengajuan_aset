@@ -1,30 +1,40 @@
 <?php
 
+use App\Http\Controllers\AsetController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KecamatanController;
+use App\Http\Controllers\PengajuanPemusnahanController;
 use App\Http\Controllers\SekolahController;
 use Illuminate\Support\Facades\Route;
 
+// Halaman Utama
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Autentikasi (Guest)
 Route::prefix('login')->middleware('guest')->group(function () {
     Route::get('/', [AuthController::class, 'index'])->name('login');
-
-    Route::post('/proses', [AuthController::class, 'loginProses'])->name('login-proses');
+    Route::post('/proses', [AuthController::class, 'loginproses'])->name('login-proses');
 });
 
+// Logout (Auth)
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+// Dashboard Group (Auth)
 Route::prefix("dashboard")->middleware('auth')->group(function() {
-    Route::get("/", [DashboardController::class,"index"])->name("dashboard");
-    Route::get("/kecamatan", [KecamatanController::class,"index"])->name("kecamatan");
-    Route::get("/kecamatan/create", [KecamatanController::class, 'create'])->name('kecamatan.create');
-    Route::delete("/kecamatan/destroy/{id}", [KecamatanController::class,"destroy"])->name("kecamatan.destroy");
-    Route::post('kecamatan/store', [KecamatanController::class, 'store'])->name('kecamatan.store');
 
+    // Main Dashboard
+    Route::get("/", [DashboardController::class, "index"])->name("dashboard");
+
+    // CRUD Kecamatan
+    Route::get("/kecamatan", [KecamatanController::class, "index"])->name("kecamatan");
+    Route::get("/kecamatan/create", [KecamatanController::class, 'create'])->name('kecamatan.create');
+    Route::post('kecamatan/store', [KecamatanController::class, 'store'])->name('kecamatan.store');
+    Route::delete("/kecamatan/destroy/{id}", [KecamatanController::class, "destroy"])->name("kecamatan.destroy");
+
+    // CRUD Sekolah
     Route::get('/sekolah', [SekolahController::class, 'index'])->name('sekolah');
     Route::get('/sekolah/create', [SekolahController::class, 'create'])->name('sekolah.create');
     Route::post('/sekolah/store', [SekolahController::class, 'store'])->name('sekolah.store');
@@ -32,9 +42,54 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
     Route::get('/sekolah/edit/{id}', [SekolahController::class, 'edit'])->name('sekolah.edit');
     Route::put('/sekolah/{id}', [SekolahController::class, 'update'])->name('sekolah.update');
     Route::delete('/sekolah/destroy/{id}', [SekolahController::class, 'destroy'])->name('sekolah.destroy');
+
+    Route::prefix('aset')->name('aset.')->group(function () {
+        // Fitur Sampah / Trash (Harus ditaruh di atas rute pengenal ID `{aset}`)
+        Route::get('/trash', [AsetController::class, 'trash'])->name('trash');
+        Route::post('/empty-trash', [AsetController::class, 'emptyTrash'])->name('emptyTrash');
+        Route::post('/{id}/restore', [AsetController::class, 'restore'])->name('restore');
+        Route::delete('/{id}/force-delete', [AsetController::class, 'forceDelete'])->name('forceDelete');
+
+        // CRUD Biasa (Menggunakan pengenal {aset} sesuai Route Model Binding di Controller)
+        Route::get('/', [AsetController::class, 'index'])->name('index');
+        Route::get('/create', [AsetController::class, 'create'])->name('create');
+        Route::post('/store', [AsetController::class, 'store'])->name('store');
+        Route::get('/{aset}/edit', [AsetController::class, 'edit'])->name('edit');
+        Route::put('/{aset}', [AsetController::class, 'update'])->name('update');
+        Route::delete('/{aset}', [AsetController::class, 'destroy'])->name('destroy');
+    });
+
+
+    // ── Pengajuan Penghapusan Asset ──────────────────────────────────────
+    // Index & Show: semua role yang login bisa akses (filter data dilakukan di controller)
+    Route::get('pengajuan', [PengajuanPemusnahanController::class, 'index'])
+        ->name('pengajuan-penghapusan-asset.index');
+
+    Route::get('pengajuan-penghapusan-asset/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'show'])
+        ->name('pengajuan-penghapusan-asset.show');
+
+    // Create, Store, Edit, Update, Destroy: hanya operator_sekolah & admin
+    Route::middleware(['role:operator_sekolah|admin'])->group(function () {
+        Route::get('pengajuan/create', [PengajuanPemusnahanController::class, 'create'])
+            ->name('pengajuan-penghapusan-asset.create');
+
+        Route::post('pengajuan', [PengajuanPemusnahanController::class, 'store'])
+            ->name('pengajuan-penghapusan-asset.store');
+
+        Route::get('pengajuan/{pengajuanPenghapusanAsset}/edit', [PengajuanPemusnahanController::class, 'edit'])
+            ->name('pengajuan-penghapusan-asset.edit');
+
+        Route::put('pengajuant/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'update'])
+            ->name('pengajuan-penghapusan-asset.update');
+
+        Route::delete('pengajuan/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'destroy'])
+            ->name('pengajuan-penghapusan-asset.destroy');
+    });
+
+    // Validasi: hanya admin & kepala_dinas
+    Route::patch(
+        'pengajuan/{pengajuanPenghapusanAsset}/validasi',
+        [PengajuanPemusnahanController::class, 'validasi']
+    )->name('pengajuan-penghapusan-asset.validasi')
+     ->middleware(['role:admin|kepala_dinas']);
 });
-// Route::get('/dashboard', function() {
-//     return view ('dashboard.index');
-// })->name('dashboard');
-
-

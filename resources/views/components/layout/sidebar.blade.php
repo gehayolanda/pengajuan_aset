@@ -49,19 +49,19 @@
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-card.html" aria-expanded="false">
+              <a class="sidebar-link @if(request()->is('dashboard/aset*')) active @endif" href="{{ route('aset.index') }}" aria-expanded="false">
                 <span>
                   <i class="ti ti-cards"></i>
                 </span>
-                <span class="hide-menu">Data Pemusnahan</span>
+                <span class="hide-menu">Data Aset</span>
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-forms.html" aria-expanded="false">
+              <a class="sidebar-link @if(request()->is('dashboard/pengajuan*')) active @endif" href="{{ route('pengajuan-penghapusan-asset.index') }}" aria-expanded="false">
                 <span>
                   <i class="ti ti-file-description"></i>
                 </span>
-                <span class="hide-menu">Laporan</span>
+                <span class="hide-menu">Pengajuan Pemusnahan</span>
               </a>
             </li>
             <li class="sidebar-item">

@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Auth;
+
+class PengajuanPemusnahan extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'pengajuan_penghapusan_asset';
+
+    protected $fillable = [
+        'nomor_pengajuan',
+        'aset_id',
+        'sekolah_id',
+        'diajukan_oleh',
+        'alasan_penghapusan',
+        'metode_penghapusan',
+        'jumlah_diajukan',
+        'keterangan',
+        'dokumen_pendukung',
+        'status',
+        'divalidasi_oleh',
+        'catatan_validasi',
+        'tanggal_validasi',
+    ];
+
+    protected $casts = [
+        'tanggal_validasi' => 'datetime',
+    ];
+
+    // ── Relationships ──────────────────────────────────────────────────
+    public function aset()
+    {
+        return $this->belongsTo(Aset::class);
+    }
+
+    public function sekolah()
+    {
+        return $this->belongsTo(Sekolah::class);
+    }
+
+    public function pengaju()
+    {
+        return $this->belongsTo(User::class, 'diajukan_oleh');
+    }
+
+    public function validator()
+    {
+        return $this->belongsTo(User::class, 'divalidasi_oleh');
+    }
+
+    // ── Accessors / Labels ─────────────────────────────────────────────
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'menunggu'  => '<span class="badge bg-warning text-dark">Menunggu</span>',
+            'disetujui' => '<span class="badge bg-success">Disetujui</span>',
+            'ditolak'   => '<span class="badge bg-danger">Ditolak</span>',
+            default     => '<span class="badge bg-secondary">-</span>',
+        };
+    }
+
+    public function getMetodeLabelAttribute(): string
+    {
+        return match ($this->metode_penghapusan) {
+            'pemusnahan'  => 'Pemusnahan',
+            'lelang'      => 'Lelang',
+            'hibah'       => 'Hibah',
+            'tukar_tambah'=> 'Tukar Tambah',
+            default       => '-',
+        };
+    }
+
+    // ── Auto-generate nomor pengajuan ──────────────────────────────────
+    public static function generateNomor(): string
+    {
+        $year  = now()->format('Y');
+        $month = now()->format('m');
+        $last  = self::whereYear('created_at', $year)
+                     ->whereMonth('created_at', $month)
+                     ->count();
+
+        return sprintf('PHA/%s/%s/%04d', $year, $month, $last + 1);
+    }
+}
