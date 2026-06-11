@@ -68,15 +68,6 @@
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
               <span class="hide-menu">AKUN</span>
             </li>
-            <li class="sidebar-item">
-              <form action="{{ route('logout') }}" method="post">
-                @csrf
-                <button type="submit" class="sidebar-link w-100 text-start border-0 bg-transparent" style="cursor:pointer;">
-                  <span><i class="ti ti-logout"></i></span>
-                  <span class="hide-menu">Logout</span>
-                </button>
-              </form>
-            </li>
           </ul>
         </nav>
         <!-- End Sidebar navigation -->

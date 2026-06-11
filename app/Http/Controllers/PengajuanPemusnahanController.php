@@ -241,8 +241,6 @@ class PengajuanPemusnahanController extends Controller
     // ── VALIDASI (Admin / Kepala Dinas) ────────────────────────────────
     public function validasi(Request $request, PengajuanPemusnahan $PengajuanPemusnahan)
     {
-        $this->authorize('manage validation');
-
         $request->validate([
             'status'           => 'required|in:disetujui,ditolak',
             'catatan_validasi'  => 'nullable|string|max:500',

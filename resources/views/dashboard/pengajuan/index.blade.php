@@ -7,11 +7,11 @@
       <h4 class="mb-0 fw-semibold">Pengajuan Penghapusan Aset</h4>
       <small class="text-muted">Daftar seluruh pengajuan penghapusan / pemusnahan aset</small>
     </div>
-    @can('manage pengajuan')
+    @role('operator_sekolah')
       <a href="{{ route('pengajuan-penghapusan-asset.create') }}" class="btn btn-primary">
         <i class="ti ti-plus me-1"></i> Buat Pengajuan
       </a>
-    @endcan
+    @endrole
   </div>
 
   {{-- Alert --}}
@@ -108,16 +108,12 @@
                     <i class="ti ti-eye"></i>
                   </a>
 
-                  {{-- Edit (hanya jika masih menunggu & miliknya) --}}
-                  @if($item->status === 'menunggu' && (Auth::user()->hasRole('admin') || $item->diajukan_oleh === Auth::id()))
+                  {{-- Edit & Hapus: hanya operator pemilik, status masih menunggu --}}
+                  @if($item->status === 'menunggu' && $item->diajukan_oleh === Auth::id())
                   <a href="{{ route('pengajuan-penghapusan-asset.edit', $item) }}"
                      class="btn btn-sm btn-outline-warning" title="Edit">
                     <i class="ti ti-edit"></i>
                   </a>
-                  @endif
-
-                  {{-- Hapus (hanya jika masih menunggu & miliknya) --}}
-                  @if($item->status === 'menunggu' && (Auth::user()->hasRole('admin') || $item->diajukan_oleh === Auth::id()))
                   <form action="{{ route('pengajuan-penghapusan-asset.destroy', $item) }}"
                         method="POST" onsubmit="return confirm('Hapus pengajuan ini?')">
                     @csrf @method('DELETE')
@@ -125,6 +121,16 @@
                       <i class="ti ti-trash"></i>
                     </button>
                   </form>
+                  @endif
+
+                  {{-- Validasi: hanya admin & kepala_dinas, status masih menunggu --}}
+                  @if($item->status === 'menunggu')
+                  @hasanyrole('admin|kepala_dinas')
+                  <button type="button" class="btn btn-sm btn-outline-success" title="Validasi"
+                          data-bs-toggle="modal" data-bs-target="#modalValidasi{{ $item->id }}">
+                    <i class="ti ti-check"></i>
+                  </button>
+                  @endhasanyrole
                   @endif
                 </div>
               </td>
@@ -150,4 +156,53 @@
   </div>
 
 </div>
+
+{{-- Modal Validasi (admin & kepala_dinas) --}}
+@hasanyrole('admin|kepala_dinas')
+@foreach($pengajuans as $item)
+@if($item->status === 'menunggu')
+<div class="modal fade" id="modalValidasi{{ $item->id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
+        @csrf @method('PATCH')
+        <div class="modal-header">
+          <h5 class="modal-title">Validasi Pengajuan</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset->nama_aset ?? '-' }}
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Keputusan <span class="text-danger">*</span></label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status" value="disetujui" id="setuju{{ $item->id }}" required>
+                <label class="form-check-label text-success fw-medium" for="setuju{{ $item->id }}">Disetujui</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="status" value="ditolak" id="tolak{{ $item->id }}">
+                <label class="form-check-label text-danger fw-medium" for="tolak{{ $item->id }}">Ditolak</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Catatan Validasi</label>
+            <textarea name="catatan_validasi" class="form-control" rows="3"
+                      placeholder="Opsional…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan Keputusan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endif
+@endforeach
+@endhasanyrole
+
 </x-layouts.app>
