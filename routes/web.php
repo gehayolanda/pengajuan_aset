@@ -79,7 +79,7 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
         Route::get('pengajuan/{pengajuanPenghapusanAsset}/edit', [PengajuanPemusnahanController::class, 'edit'])
             ->name('pengajuan-penghapusan-asset.edit');
 
-        Route::put('pengajuant/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'update'])
+        Route::put('pengajuan/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'update'])
             ->name('pengajuan-penghapusan-asset.update');
 
         Route::delete('pengajuan/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'destroy'])

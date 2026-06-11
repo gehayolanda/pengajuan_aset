@@ -18,7 +18,7 @@ class Aset extends Model
 
     protected $casts = [
         'harga_perolehan' => 'decimal:2',
-        'deteled_at' => 'datetime'
+        'deleted_at' => 'datetime'
     ];
 
     // relasi

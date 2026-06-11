@@ -37,6 +37,7 @@
   <script src="{{ asset('template/assets/libs/apexcharts/dist/apexcharts.min.js') }}"></script>
   <script src="{{ asset('template/assets/libs/simplebar/dist/simplebar.js') }}"></script>
   <script src="{{ asset('template/assets/js/dashboard.js') }}"></script>
+  @stack('scripts')
 </body>
 
 </html>

@@ -73,7 +73,7 @@ class PengajuanPemusnahanController extends Controller
             'tukar_tambah' => 'Tukar Tambah',
         ];
 
-        return view('dahboard.pengajuan.create', compact('asets', 'sekolahs', 'metodes'));
+        return view('dashboard.pengajuan.create', compact('asets', 'sekolahs', 'metodes'));
     }
 
     // ── STORE ──────────────────────────────────────────────────────────
