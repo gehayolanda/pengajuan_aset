@@ -80,7 +80,7 @@
     </div>
 
     {{-- Status Pengajuan + Chart --}}
-    <div class="row mt-4">
+    {{-- <div class="row mt-4">
         <div class="col-lg-8">
             <div class="card shadow-none border">
                 <div class="card-body p-4">
@@ -88,7 +88,7 @@
                     <div id="chartPengajuan"></div>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <div class="col-lg-4">
             <div class="card shadow-none border h-100">
                 <div class="card-body p-4">

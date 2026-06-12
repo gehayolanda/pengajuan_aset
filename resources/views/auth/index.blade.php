@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SILA-PTK</title>
+    <title>SI-PPASET</title>
 
     <link rel="shortcut icon" type="image/png" href="{{ asset('template/assets/images/logos/favicon.png') }}">
     <link rel="stylesheet" href="{{ asset('template/assets/css/styles.min.css') }}">
@@ -14,7 +14,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --navy:   #0f1f3d;
+            --navy:   #7f2600;
             --blue:   #1a3a6e;
             --accent: #3b82f6;
             --gold:   #f59e0b;
@@ -395,7 +395,7 @@
         <div class="left-brand">
             <div class="brand-badge">
                 <span class="dot"></span>
-                SI-PASET
+                SI-PPASET
             </div>
             <h1>Sistem Informasi <em>Pengajuan Pemusnahan Aset</em><br>Dinas Pendidikan <br>Kabupaten Ketapang</h1>
             <p>Pengajuan Pemusnahan Aset</p>
@@ -403,7 +403,7 @@
 
         <div class="stats-row">
             <div class="stat-item">
-                <div class="val">PTK<span>.</span></div>
+                <div class="val">ASET<span>.</span></div>
                 <div class="lbl">Manajemen Data</div>
             </div>
             <div class="stat-item">
