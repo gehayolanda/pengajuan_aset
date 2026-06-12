@@ -26,10 +26,19 @@ class UserSeeder extends Seeder
         $operator_sekolah = User::create([
             'name' => 'Operator Sekolah',
             'email' => 'operator@gmail.com',
-            'login_id' => '123456789',
+            'login_id' => 'operator',
             'password' => Hash::make('12345678'),
         ]);
 
         $operator_sekolah->assignRole('operator_sekolah');
+
+        $kadis = User::create([
+            'name' => 'Kepala Dinas',
+            'email' => 'kadis@gmail.com',
+            'login_id' => 'kadis_disdik',
+            'password' => Hash::make('12345678')
+        ]);
+
+        $kadis->assignRole('kepala_dinas');
     }
 }

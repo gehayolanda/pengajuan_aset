@@ -10,8 +10,11 @@
         <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
             <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                 <li class="nav-item dropdown d-flex align-items-center">
-                    <span class="d-flex align-items-center flex-wrap fw-semibold">
+                    <span class="d-flex align-items-center flex-wrap fw-semibold me-2">
                         {{ Auth::user()->name }}
+                        @role('admin')<span class="badge bg-primary ms-1" style="font-size:10px;">Admin</span>@endrole
+                        @role('operator_sekolah')<span class="badge bg-success ms-1" style="font-size:10px;">Operator</span>@endrole
+                        @role('kepala_dinas')<span class="badge bg-warning text-dark ms-1" style="font-size:10px;">Kadis</span>@endrole
                     </span>
 
                     <a class="nav-link nav-icon" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"
