@@ -7,47 +7,73 @@
                 </a>
             </li>
         </ul>
-        <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
-            <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-                <li class="nav-item dropdown d-flex align-items-center">
-                    <span class="d-flex align-items-center flex-wrap fw-semibold me-2">
-                        {{ Auth::user()->name }}
-                        @role('admin')<span class="badge bg-primary ms-1" style="font-size:10px;">Admin</span>@endrole
-                        @role('operator_sekolah')<span class="badge bg-success ms-1" style="font-size:10px;">Operator</span>@endrole
-                        @role('kepala_dinas')<span class="badge bg-warning text-dark ms-1" style="font-size:10px;">Kadis</span>@endrole
-                    </span>
 
-                    <a class="nav-link nav-icon" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        @if (Auth::user()->foto_profil)
-                            <img src="{{ asset('storage/' . Auth::user()->foto_profil) }}" alt="" width="50"
-                                height="50" class="rounded-circle object-fit-cover">
-                        @else
-                            <span class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold"
-                                style="width:50px;height:50px;font-size:1.2rem;">
-                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                            </span>
-                        @endif
+        <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
+            <ul class="navbar-nav flex-row ms-auto align-items-center gap-2">
+
+                {{-- Role badge --}}
+                <li class="nav-item d-none d-md-flex align-items-center">
+                    @if(Auth::user()->hasRole('admin'))
+                        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">
+                            <i class="ti ti-shield-check me-1"></i> Admin
+                        </span>
+                    @else
+                        <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+                            <i class="ti ti-school me-1"></i> Operator Sekolah
+                        </span>
+                    @endif
+                </li>
+
+                {{-- User dropdown --}}
+                <li class="nav-item dropdown">
+                    <a href="javascript:void(0)" class="nav-link d-flex align-items-center gap-2 pe-0"
+                       id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+
+                        {{-- Avatar inisial --}}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                             style="width:38px;height:38px;font-size:.95rem;
+                             background: {{ Auth::user()->hasRole('admin') ? '#dc3545' : '#0d6efd' }}">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                        </div>
+
+                        <div class="d-none d-md-block text-start lh-sm">
+                            <div class="fw-semibold" style="font-size:.875rem">{{ Auth::user()->name }}</div>
+                            <div class="text-muted" style="font-size:.75rem">{{ Auth::user()->login_id }}</div>
+                        </div>
+
+                        <i class="ti ti-chevron-down text-muted ms-1" style="font-size:.8rem"></i>
                     </a>
-                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up" aria-labelledby="drop2">
-                        <div class="message-body">
-                            <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
-                                <i class="ti ti-user fs-6 text-muted"></i>
+
+                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up shadow-sm border-0 mt-2"
+                         aria-labelledby="userDropdown" style="min-width:220px">
+
+                        {{-- Info user --}}
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                                     style="width:40px;height:40px;
+                                     background: {{ Auth::user()->hasRole('admin') ? '#dc3545' : '#0d6efd' }}">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </div>
                                 <div>
-                                    <p class="mb-0 fw-semibold fs-3">{{ Auth::user()->name }}</p>
-                                    <p class="mb-0 text-muted fs-2">{{ Auth::user()->email }}</p>
+                                    <div class="fw-semibold" style="font-size:.875rem">{{ Auth::user()->name }}</div>
+                                    <div class="text-muted" style="font-size:.75rem">{{ Auth::user()->email }}</div>
                                 </div>
                             </div>
-                            <form action="{{ route('logout') }}" method="post">
-                                @csrf
+                        </div>
 
-                                <button class="btn btn-outline-danger" type="submit">
-                                    <i class="ti ti-power"></i> Logout
+                        {{-- Logout --}}
+                        <div class="px-3 py-2">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+                                    <i class="ti ti-logout"></i> Keluar
                                 </button>
                             </form>
                         </div>
                     </div>
                 </li>
+
             </ul>
         </div>
     </nav>

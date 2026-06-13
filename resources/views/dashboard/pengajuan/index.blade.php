@@ -40,6 +40,7 @@
           <select name="status" class="form-select form-select-sm">
             <option value="">-- Semua Status --</option>
             <option value="menunggu"  {{ request('status') === 'menunggu'  ? 'selected' : '' }}>Menunggu</option>
+            <option value="diproses"  {{ request('status') === 'diproses'  ? 'selected' : '' }}>Diproses</option>
             <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
             <option value="ditolak"   {{ request('status') === 'ditolak'   ? 'selected' : '' }}>Ditolak</option>
           </select>
@@ -99,7 +100,7 @@
               <td>{{ $item->metode_label }}</td>
               <td>{{ $item->jumlah_diajukan }} {{ $item->aset->satuan ?? '' }}</td>
               <td>{!! $item->status_label !!}</td>
-              <td><small>{{ $item->created_at->format('d/m/Y') }}</small></td>
+              <td><small>{{ $item->created_at?->format('d/m/Y') ?? '-' }}</small></td>
               <td class="text-center pe-3">
                 <div class="d-flex gap-1 justify-content-center">
                   {{-- Detail --}}
@@ -123,15 +124,25 @@
                   </form>
                   @endif
 
-                  {{-- Validasi: hanya admin & kepala_dinas, status masih menunggu --}}
+                  {{-- Admin: tombol Proses (hanya status menunggu) --}}
+                  @role('admin')
                   @if($item->status === 'menunggu')
-                  @hasanyrole('admin|kepala_dinas')
-                  <button type="button" class="btn btn-sm btn-outline-success" title="Validasi"
+                  <button type="button" class="btn btn-sm btn-outline-info" title="Proses"
+                          data-bs-toggle="modal" data-bs-target="#modalProses{{ $item->id }}">
+                    <i class="ti ti-settings"></i>
+                  </button>
+                  @endif
+                  @endrole
+
+                  {{-- Kadis: tombol Setujui/Tolak (hanya status diproses) --}}
+                  @role('kepala_dinas')
+                  @if($item->status === 'diproses')
+                  <button type="button" class="btn btn-sm btn-outline-success" title="Setujui / Tolak"
                           data-bs-toggle="modal" data-bs-target="#modalValidasi{{ $item->id }}">
                     <i class="ti ti-check"></i>
                   </button>
-                  @endhasanyrole
                   @endif
+                  @endrole
                 </div>
               </td>
             </tr>
@@ -157,17 +168,58 @@
 
 </div>
 
-{{-- Modal Validasi (admin & kepala_dinas) --}}
-@hasanyrole('admin|kepala_dinas')
+{{-- Modal Proses (Admin: menunggu → diproses) --}}
+@role('admin')
 @foreach($pengajuans as $item)
 @if($item->status === 'menunggu')
+<div class="modal fade" id="modalProses{{ $item->id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
+        @csrf @method('PATCH')
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="ti ti-settings me-1 text-info"></i> Proses Pengajuan</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset->nama_aset ?? '-' }}
+          </p>
+          <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+            <i class="ti ti-info-circle"></i>
+            <span>Pengajuan akan diteruskan ke <strong>Kepala Dinas</strong> untuk disetujui atau ditolak.</span>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Catatan (opsional)</label>
+            <textarea name="catatan_validasi" class="form-control" rows="3"
+                      placeholder="Catatan untuk Kepala Dinas…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-info text-white">
+            <i class="ti ti-send me-1"></i> Teruskan ke Kadis
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+@endif
+@endforeach
+@endrole
+
+{{-- Modal Validasi (Kepala Dinas: diproses → disetujui/ditolak) --}}
+@role('kepala_dinas')
+@foreach($pengajuans as $item)
+@if($item->status === 'diproses')
 <div class="modal fade" id="modalValidasi{{ $item->id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
         @csrf @method('PATCH')
         <div class="modal-header">
-          <h5 class="modal-title">Validasi Pengajuan</h5>
+          <h5 class="modal-title"><i class="ti ti-clipboard-check me-1 text-success"></i> Keputusan Pengajuan</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
@@ -188,9 +240,8 @@
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label fw-semibold">Catatan Validasi</label>
-            <textarea name="catatan_validasi" class="form-control" rows="3"
-                      placeholder="Opsional…"></textarea>
+            <label class="form-label fw-semibold">Catatan</label>
+            <textarea name="catatan_validasi" class="form-control" rows="3" placeholder="Opsional…"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -203,6 +254,6 @@
 </div>
 @endif
 @endforeach
-@endhasanyrole
+@endrole
 
 </x-layouts.app>

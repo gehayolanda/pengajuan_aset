@@ -59,6 +59,7 @@ class PengajuanPemusnahan extends Model
     {
         return match ($this->status) {
             'menunggu'  => '<span class="badge bg-warning text-dark">Menunggu</span>',
+            'diproses'  => '<span class="badge bg-info text-dark">Diproses</span>',
             'disetujui' => '<span class="badge bg-success">Disetujui</span>',
             'ditolak'   => '<span class="badge bg-danger">Ditolak</span>',
             default     => '<span class="badge bg-secondary">-</span>',

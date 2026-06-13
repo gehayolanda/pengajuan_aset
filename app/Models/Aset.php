@@ -52,4 +52,16 @@ class Aset extends Model
         return $this->forceDelete();
     }
 
+    public static function generateKode(): string
+    {
+        $last = self::withTrashed()
+            ->where('kode_aset', 'like', 'AST-%')
+            ->orderByRaw('CAST(SUBSTRING(kode_aset, 5) AS UNSIGNED) DESC')
+            ->value('kode_aset');
+
+        $next = $last ? ((int) substr($last, 4)) + 1 : 1;
+
+        return 'AST-' . str_pad($next, 3, '0', STR_PAD_LEFT);
+    }
+
 }
