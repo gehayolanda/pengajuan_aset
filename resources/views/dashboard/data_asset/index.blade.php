@@ -14,14 +14,14 @@
                 </nav>
             </div>
             <div class="d-flex gap-2">
-                @can('manage data')
+                @hasanyrole('admin|operator_sekolah')
                     <a href="{{ route('aset.trash') }}" class="btn btn-outline-danger btn-sm">
                         <i class="ti ti-trash me-1"></i> Tempat Sampah
                     </a>
                     <a href="{{ route('aset.create') }}" class="btn btn-primary btn-sm">
                         <i class="ti ti-plus me-1"></i> Tambah Aset
                     </a>
-                @endcan
+                @endhasanyrole
             </div>
         </div>
 
@@ -76,7 +76,7 @@
                                     <td class="text-muted">{{ $item->lokasi ?? '-' }}</td>
                                     <td class="text-center pe-4">
                                         <div class="d-flex gap-1 justify-content-center">
-                                            @can('manage data')
+                                            @hasanyrole('admin|operator_sekolah')
                                                 <a href="{{ route('aset.edit', $item) }}"
                                                    class="btn btn-sm btn-outline-primary"
                                                    title="Edit">
@@ -93,7 +93,7 @@
                                                         <i class="ti ti-trash"></i>
                                                     </button>
                                                 </form>
-                                            @endcan
+                                            @endhasanyrole
                                         </div>
                                     </td>
                                 </tr>

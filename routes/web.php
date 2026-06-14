@@ -65,7 +65,7 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
     Route::get('pengajuan', [PengajuanPemusnahanController::class, 'index'])
         ->name('pengajuan-penghapusan-asset.index');
 
-    Route::get('pengajuan-penghapusan-asset/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'show'])
+    Route::get('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'show'])
         ->name('pengajuan-penghapusan-asset.show');
 
     // Create, Store, Edit, Update, Destroy: hanya operator_sekolah & admin
@@ -76,19 +76,19 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
         Route::post('pengajuan', [PengajuanPemusnahanController::class, 'store'])
             ->name('pengajuan-penghapusan-asset.store');
 
-        Route::get('pengajuan/{pengajuanPenghapusanAsset}/edit', [PengajuanPemusnahanController::class, 'edit'])
+        Route::get('pengajuan/{pengajuanPemusnahan}/edit', [PengajuanPemusnahanController::class, 'edit'])
             ->name('pengajuan-penghapusan-asset.edit');
 
-        Route::put('pengajuan/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'update'])
+        Route::put('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'update'])
             ->name('pengajuan-penghapusan-asset.update');
 
-        Route::delete('pengajuan/{pengajuanPenghapusanAsset}', [PengajuanPemusnahanController::class, 'destroy'])
+        Route::delete('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'destroy'])
             ->name('pengajuan-penghapusan-asset.destroy');
     });
 
     // Validasi: hanya admin & kepala_dinas
     Route::patch(
-        'pengajuan/{pengajuanPenghapusanAsset}/validasi',
+        'pengajuan/{pengajuanPemusnahan}/validasi',
         [PengajuanPemusnahanController::class, 'validasi']
     )->name('pengajuan-penghapusan-asset.validasi')
      ->middleware(['role:admin|kepala_dinas']);

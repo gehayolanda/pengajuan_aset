@@ -120,25 +120,25 @@ class PengajuanPemusnahanController extends Controller
     }
 
     // ── SHOW ───────────────────────────────────────────────────────────
-    public function show(PengajuanPemusnahan $PengajuanPemusnahan)
+    public function show(PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        $PengajuanPemusnahan->load(['aset', 'sekolah', 'pengaju', 'validator']);
+        $pengajuanPemusnahan->load(['aset', 'sekolah', 'pengaju', 'validator']);
         return view('dashboard.pengajuan.show', [
-            'pengajuan' => $PengajuanPemusnahan,
+            'pengajuan' => $pengajuanPemusnahan,
         ]);
     }
 
     // ── EDIT ───────────────────────────────────────────────────────────
-    public function edit(PengajuanPemusnahan $PengajuanPemusnahan)
+    public function edit(PengajuanPemusnahan $pengajuanPemusnahan)
     {
         // Hanya bisa diedit jika masih 'menunggu'
-        if ($PengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'menunggu') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat diubah.');
         }
 
         // Operator sekolah hanya bisa edit miliknya sendiri
         if (Auth::user()->hasRole('operator_sekolah') &&
-            $PengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
+            $pengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
             abort(403);
         }
 
@@ -160,7 +160,7 @@ class PengajuanPemusnahanController extends Controller
         ];
 
         return view('dashboard.pengajuan.edit', [
-            'pengajuan' => $PengajuanPemusnahan,
+            'pengajuan' => $pengajuanPemusnahan,
             'asets'     => $asets,
             'sekolahs'  => $sekolahs,
             'metodes'   => $metodes,
@@ -168,14 +168,14 @@ class PengajuanPemusnahanController extends Controller
     }
 
     // ── UPDATE ─────────────────────────────────────────────────────────
-    public function update(Request $request, PengajuanPemusnahan $PengajuanPemusnahan)
+    public function update(Request $request, PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        if ($PengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'menunggu') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat diubah.');
         }
 
         if (Auth::user()->hasRole('operator_sekolah') &&
-            $PengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
+            $pengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
             abort(403);
         }
 
@@ -191,7 +191,7 @@ class PengajuanPemusnahanController extends Controller
 
         DB::beginTransaction();
         try {
-            $dokumenPath = $PengajuanPemusnahan->dokumen_pendukung;
+            $dokumenPath = $pengajuanPemusnahan->dokumen_pendukung;
 
             if ($request->hasFile('dokumen_pendukung')) {
                 // Hapus dokumen lama
@@ -202,7 +202,7 @@ class PengajuanPemusnahanController extends Controller
                     ->store('pengajuan-penghapusan', 'public');
             }
 
-            $PengajuanPemusnahan->update([
+            $pengajuanPemusnahan->update([
                 'aset_id'            => $request->aset_id,
                 'sekolah_id'         => $request->sekolah_id,
                 'alasan_penghapusan' => $request->alasan_penghapusan,
@@ -222,35 +222,58 @@ class PengajuanPemusnahanController extends Controller
     }
 
     // ── DESTROY ────────────────────────────────────────────────────────
-    public function destroy(PengajuanPemusnahan $PengajuanPemusnahan)
+    public function destroy(PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        if ($PengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'menunggu') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat dihapus.');
         }
 
         if (Auth::user()->hasRole('operator_sekolah') &&
-            $PengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
+            $pengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
             abort(403);
         }
 
-        $PengajuanPemusnahan->delete();
+        $pengajuanPemusnahan->delete();
 
         return back()->with('success', 'Pengajuan berhasil dihapus.');
     }
 
-    // ── VALIDASI (Admin / Kepala Dinas) ────────────────────────────────
-    public function validasi(Request $request, PengajuanPemusnahan $PengajuanPemusnahan)
+    // ── VALIDASI (Admin: proses | Kepala Dinas: setujui/tolak) ────────
+    public function validasi(Request $request, PengajuanPemusnahan $pengajuanPemusnahan)
     {
+        $user = Auth::user();
+
+        if ($user->hasRole('admin')) {
+            // Admin hanya bisa memproses (menunggu → diproses)
+            if ($pengajuanPemusnahan->status !== 'menunggu') {
+                return back()->with('error', 'Hanya pengajuan berstatus "Menunggu" yang dapat diproses.');
+            }
+
+            $pengajuanPemusnahan->update([
+                'status'           => 'diproses',
+                'divalidasi_oleh'  => $user->id,
+                'catatan_validasi' => $request->catatan_validasi,
+                'tanggal_validasi' => now(),
+            ]);
+
+            return back()->with('success', 'Pengajuan berhasil diproses dan diteruskan ke Kepala Dinas.');
+        }
+
+        // Kepala Dinas: setujui atau tolak (hanya dari status diproses)
         $request->validate([
-            'status'           => 'required|in:disetujui,ditolak',
-            'catatan_validasi'  => 'nullable|string|max:500',
+            'status'          => 'required|in:disetujui,ditolak',
+            'catatan_validasi' => 'nullable|string|max:500',
         ]);
 
-        $PengajuanPemusnahan->update([
-            'status'            => $request->status,
-            'divalidasi_oleh'   => Auth::id(),
-            'catatan_validasi'  => $request->catatan_validasi,
-            'tanggal_validasi'  => now(),
+        if ($pengajuanPemusnahan->status !== 'diproses') {
+            return back()->with('error', 'Hanya pengajuan berstatus "Diproses" yang dapat disetujui atau ditolak.');
+        }
+
+        $pengajuanPemusnahan->update([
+            'status'           => $request->status,
+            'divalidasi_oleh'  => $user->id,
+            'catatan_validasi' => $request->catatan_validasi,
+            'tanggal_validasi' => now(),
         ]);
 
         $label = $request->status === 'disetujui' ? 'disetujui' : 'ditolak';

@@ -25,15 +25,14 @@ class RolePermissionSeeder extends Seeder
         $kepala_dinas = Role::create(['name'=> 'kepala_dinas']);
 
         $admin->givePermissionTo(Permission::all());
+
         $operator_sekolah->givePermissionTo([
-            'manage data sekolah',
-            'manage pengajuan',
             'manage data',
+            'manage pengajuan',
         ]);
 
         $kepala_dinas->givePermissionTo([
             'manage validation',
-            
         ]);
 
     }

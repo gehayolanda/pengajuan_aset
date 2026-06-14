@@ -159,7 +159,7 @@
                                     </td>
                                     <td>{{ $item->aset->nama_aset ?? '-' }}</td>
                                     <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
-                                    <td><small class="text-muted">{{ $item->created_at->format('d M Y') }}</small></td>
+                                    <td><small class="text-muted">{{ $item->created_at?->format('d M Y') ?? '-' }}</small></td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -210,7 +210,7 @@
                                         <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
                                         <td>{{ $item->pengaju->name ?? '-' }}</td>
                                         <td>{!! $item->status_label !!}</td>
-                                        <td>{{ $item->created_at->format('d M Y') }}</td>
+                                        <td>{{ $item->created_at?->format('d M Y') ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>

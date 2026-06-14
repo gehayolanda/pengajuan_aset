@@ -20,11 +20,11 @@
         </div>
 
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="">
                 <div class="card">
                     <div class="card-body">
 
-                        <form action="{{ route('aset.update', $aset) }}" method="POST">
+                        <form action="{{ route('aset.update', $aset) }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 
@@ -33,18 +33,24 @@
                                 {{-- Sekolah --}}
                                 <div class="col-12">
                                     <label class="form-label fw-medium">Sekolah <span class="text-danger">*</span></label>
-                                    <select name="sekolah_id" class="form-select @error('sekolah_id') is-invalid @enderror">
-                                        <option value="">-- Pilih Sekolah --</option>
-                                        @foreach ($sekolahList as $sekolah)
-                                            <option value="{{ $sekolah->id }}"
-                                                {{ old('sekolah_id', $aset->sekolah_id) == $sekolah->id ? 'selected' : '' }}>
-                                                {{ $sekolah->nama_sekolah }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('sekolah_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    @if($sekolahOperator)
+                                        <input type="text" class="form-control bg-light"
+                                               value="{{ $sekolahOperator->nama_sekolah }}" readonly>
+                                        <input type="hidden" name="sekolah_id" value="{{ $sekolahOperator->id }}">
+                                    @else
+                                        <select name="sekolah_id" class="form-select @error('sekolah_id') is-invalid @enderror">
+                                            <option value="">-- Pilih Sekolah --</option>
+                                            @foreach ($sekolahList as $sekolah)
+                                                <option value="{{ $sekolah->id }}"
+                                                    {{ old('sekolah_id', $aset->sekolah_id) == $sekolah->id ? 'selected' : '' }}>
+                                                    {{ $sekolah->nama_sekolah }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('sekolah_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    @endif
                                 </div>
 
                                 {{-- Nama Aset --}}
@@ -67,7 +73,7 @@
                                            name="kode_aset"
                                            class="form-control @error('kode_aset') is-invalid @enderror"
                                            value="{{ old('kode_aset', $aset->kode_aset) }}"
-                                           placeholder="contoh: AST-001">
+                                           placeholder="contoh: AST-001" disabled>
                                     @error('kode_aset')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -166,6 +172,31 @@
                                     @enderror
                                 </div>
 
+                                {{-- Foto Bukti --}}
+                                <div class="col-12">
+                                    <label class="form-label fw-medium">Foto Bukti Aset</label>
+                                    @if($aset->foto_bukti)
+                                        <div class="mb-2">
+                                            <img src="{{ asset('storage/' . $aset->foto_bukti) }}"
+                                                 alt="Foto saat ini" class="rounded border"
+                                                 style="max-height:160px; object-fit:cover;">
+                                            <p class="form-text mt-1">Foto saat ini. Upload baru untuk mengganti.</p>
+                                        </div>
+                                    @endif
+                                    <input type="file" name="foto_bukti"
+                                           class="form-control @error('foto_bukti') is-invalid @enderror"
+                                           accept="image/jpg,image/jpeg,image/png,image/webp"
+                                           onchange="previewFoto(this)">
+                                    <div class="form-text">Format: JPG, PNG, WEBP. Maks 2 MB. Kosongkan jika tidak ingin mengubah.</div>
+                                    @error('foto_bukti')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div id="fotoPreview" class="mt-2 d-none">
+                                        <img src="" alt="Preview baru" class="rounded border"
+                                             style="max-height:160px; object-fit:cover;">
+                                    </div>
+                                </div>
+
                                 {{-- Tombol --}}
                                 <div class="col-12 d-flex gap-2 justify-content-end mt-2">
                                     <a href="{{ route('aset.index') }}" class="btn btn-outline-secondary">Batal</a>
@@ -183,5 +214,20 @@
         </div>
 
     </div>
+
+@push('scripts')
+<script>
+function previewFoto(input) {
+    const preview = document.getElementById('fotoPreview');
+    const img = preview.querySelector('img');
+    if (input.files && input.files[0]) {
+        img.src = URL.createObjectURL(input.files[0]);
+        preview.classList.remove('d-none');
+    } else {
+        preview.classList.add('d-none');
+    }
+}
+</script>
+@endpush
 
 </x-layouts.app>
