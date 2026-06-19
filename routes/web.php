@@ -4,6 +4,7 @@ use App\Http\Controllers\AsetController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KecamatanController;
+use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\PengajuanPemusnahanController;
 use App\Http\Controllers\SekolahController;
 use Illuminate\Support\Facades\Route;
@@ -98,4 +99,12 @@ Route::prefix("dashboard")->middleware('auth')->group(function () {
         [PengajuanPemusnahanController::class, 'validasi']
     )->name('pengajuan-penghapusan-asset.validasi')
      ->middleware(['role:admin|kepala_dinas']);
+
+    Route::get('operator', [OperatorController::class, 'index'])->middleware(['auth', 'role:admin'])->name('operator');
+    Route::get('operator/create', [OperatorController::class, 'create'])->name('operator.create');
+    Route::post('operator', [OperatorController::class, 'store'])->name('operator.store');
+    Route::get('operator/edit/{id}', [OperatorController::class, 'edit'])->name('operator.edit');
+    Route::put('operator/{id}', [OperatorController::class, 'update'])->name('operator.update');
+    Route::delete('operator/destroy/{id}', [OperatorController::class, 'destroy'])->name('operator.destroy');
+
 });
