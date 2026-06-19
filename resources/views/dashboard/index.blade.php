@@ -33,7 +33,7 @@
         @endrole
 
         @hasanyrole('admin|operator_sekolah')
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-sm-12 col-xl-3">
             <div class="card shadow-none border h-100">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center">

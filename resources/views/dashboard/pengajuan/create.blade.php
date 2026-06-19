@@ -64,18 +64,11 @@
             @error('aset_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
 
-          {{-- Metode Penghapusan --}}
+          {{-- Metode Penghapusan (fixed: pemusnahan) --}}
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Metode Penghapusan <span class="text-danger">*</span></label>
-            <select name="metode_penghapusan" class="form-select @error('metode_penghapusan') is-invalid @enderror">
-              <option value="">-- Pilih Metode --</option>
-              @foreach($metodes as $key => $label)
-                <option value="{{ $key }}" {{ old('metode_penghapusan') === $key ? 'selected' : '' }}>
-                  {{ $label }}
-                </option>
-              @endforeach
-            </select>
-            @error('metode_penghapusan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <label class="form-label fw-semibold">Metode Penghapusan</label>
+            <input type="text" class="form-control" value="Pemusnahan" readonly>
+            <input type="hidden" name="metode_penghapusan" value="pemusnahan">
           </div>
 
           {{-- Jumlah Diajukan --}}

@@ -23,7 +23,7 @@ Route::prefix('login')->middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 // Dashboard Group (Auth)
-Route::prefix("dashboard")->middleware('auth')->group(function() {
+Route::prefix("dashboard")->middleware('auth')->group(function () {
 
     // Main Dashboard
     Route::get("/", [DashboardController::class, "index"])->name("dashboard");
@@ -43,14 +43,15 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
     Route::put('/sekolah/{id}', [SekolahController::class, 'update'])->name('sekolah.update');
     Route::delete('/sekolah/destroy/{id}', [SekolahController::class, 'destroy'])->name('sekolah.destroy');
 
+    // CRUD Aset
     Route::prefix('aset')->name('aset.')->group(function () {
-        // Fitur Sampah / Trash (Harus ditaruh di atas rute pengenal ID `{aset}`)
+        // Fitur Sampah (harus di atas route {aset})
         Route::get('/trash', [AsetController::class, 'trash'])->name('trash');
         Route::post('/empty-trash', [AsetController::class, 'emptyTrash'])->name('emptyTrash');
         Route::post('/{id}/restore', [AsetController::class, 'restore'])->name('restore');
         Route::delete('/{id}/force-delete', [AsetController::class, 'forceDelete'])->name('forceDelete');
 
-        // CRUD Biasa (Menggunakan pengenal {aset} sesuai Route Model Binding di Controller)
+        // CRUD Biasa
         Route::get('/', [AsetController::class, 'index'])->name('index');
         Route::get('/create', [AsetController::class, 'create'])->name('create');
         Route::post('/store', [AsetController::class, 'store'])->name('store');
@@ -59,23 +60,28 @@ Route::prefix("dashboard")->middleware('auth')->group(function() {
         Route::delete('/{aset}', [AsetController::class, 'destroy'])->name('destroy');
     });
 
-
     // ── Pengajuan Penghapusan Asset ──────────────────────────────────────
-    // Index & Show: semua role yang login bisa akses (filter data dilakukan di controller)
+
+    // Index: semua role yang login
     Route::get('pengajuan', [PengajuanPemusnahanController::class, 'index'])
         ->name('pengajuan-penghapusan-asset.index');
 
-    Route::get('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'show'])
-        ->name('pengajuan-penghapusan-asset.show');
-
-    // Create, Store, Edit, Update, Destroy: hanya operator_sekolah & admin
+    // FIX: Create & Store dipindah ke ATAS route show/{pengajuanPemusnahan}
+    // agar 'create' tidak tertangkap sebagai nilai parameter {pengajuanPemusnahan}
     Route::middleware(['role:operator_sekolah|admin'])->group(function () {
         Route::get('pengajuan/create', [PengajuanPemusnahanController::class, 'create'])
             ->name('pengajuan-penghapusan-asset.create');
 
         Route::post('pengajuan', [PengajuanPemusnahanController::class, 'store'])
             ->name('pengajuan-penghapusan-asset.store');
+    });
 
+    // Show: semua role yang login (setelah create agar tidak konflik)
+    Route::get('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'show'])
+        ->name('pengajuan-penghapusan-asset.show');
+
+    // Edit, Update, Destroy: hanya operator_sekolah & admin
+    Route::middleware(['role:operator_sekolah|admin'])->group(function () {
         Route::get('pengajuan/{pengajuanPemusnahan}/edit', [PengajuanPemusnahanController::class, 'edit'])
             ->name('pengajuan-penghapusan-asset.edit');
 

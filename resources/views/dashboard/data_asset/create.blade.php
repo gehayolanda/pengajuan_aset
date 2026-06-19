@@ -73,9 +73,8 @@
                                 {{-- Kode Aset (auto-generate) --}}
                                 <div class="col-md-4">
                                     <label class="form-label fw-medium">Kode Aset</label>
-                                    <input type="text" class="form-control bg-light text-muted"
-                                           value="Otomatis (AST-XXX)" readonly>
-                                    <div class="form-text">Kode akan di-generate otomatis saat disimpan.</div>
+                                    <input type="text" name="kode_aset" class="form-control"
+                                           placeholder="Masukkan Kode Aset">
                                 </div>
 
                                 {{-- Kondisi --}}

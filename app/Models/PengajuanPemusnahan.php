@@ -70,9 +70,6 @@ class PengajuanPemusnahan extends Model
     {
         return match ($this->metode_penghapusan) {
             'pemusnahan'  => 'Pemusnahan',
-            'lelang'      => 'Lelang',
-            'hibah'       => 'Hibah',
-            'tukar_tambah'=> 'Tukar Tambah',
             default       => '-',
         };
     }

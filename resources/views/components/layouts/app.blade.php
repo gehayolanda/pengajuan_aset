@@ -7,6 +7,22 @@
   <title>SI-PPASET</title>
   <link rel="shortcut icon" type="image/png" href="{{ asset('template') }}/assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="{{ asset('template/assets/css/styles.min.css') }}" />
+
+  <style>
+    .btn-primary{
+        background-color: #7f2600;
+        border: #7f2600;
+    }
+    .btn-primary:hover {
+        background-color: #7f2600;
+        border: #7f2600;
+    }
+    .bg-primary {
+        background-color: #7f2600;
+    }
+
+  </style>
+
 </head>
 
 <body>
@@ -24,9 +40,6 @@
       <div class="container-fluid">
         <!--  Row 1 -->
   {{ $slot }}
-        {{-- <div class="py-6 px-6 text-center">
-          <p class="mb-0 fs-4">Design and Developed by <a href="https://adminmart.com/" target="_blank" class="pe-1 text-primary text-decoration-underline">AdminMart.com</a> Distributed by <a href="https://themewagon.com">ThemeWagon</a></p>
-        </div> --}}
       </div>
     </div>
   </div>
