@@ -44,7 +44,6 @@
                                 <th>Nama Aset</th>
                                 <th>Kode Aset</th>
                                 <th>Sekolah</th>
-                                <th>Kondisi</th>
                                 <th>Jumlah</th>
                                 <th>Lokasi</th>
                                 <th class="text-center pe-4" style="width: 130px">Aksi</th>
@@ -63,15 +62,6 @@
                                         </span>
                                     </td>
                                     <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
-                                    <td>
-                                        @if ($item->kondisi === 'baik')
-                                            <span class="badge bg-success-subtle text-success">Baik</span>
-                                        @elseif ($item->kondisi === 'rusak_ringan')
-                                            <span class="badge bg-warning-subtle text-warning">Rusak Ringan</span>
-                                        @else
-                                            <span class="badge bg-danger-subtle text-danger">Rusak Berat</span>
-                                        @endif
-                                    </td>
                                     <td>{{ $item->jumlah }} {{ $item->satuan }}</td>
                                     <td class="text-muted">{{ $item->lokasi ?? '-' }}</td>
                                     <td class="text-center pe-4">
