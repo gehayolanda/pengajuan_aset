@@ -53,9 +53,9 @@
                                     @endif
                                 </div>
 
-                                {{-- Nama Aset --}}
-                                <div class="col-md-8">
-                                    <label class="form-label fw-medium">Nama Aset <span class="text-danger">*</span></label>
+                                {{-- Nama Aset (Data Barang) --}}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Nama / Data Barang <span class="text-danger">*</span></label>
                                     <input type="text"
                                            name="nama_aset"
                                            class="form-control @error('nama_aset') is-invalid @enderror"
@@ -66,14 +66,42 @@
                                     @enderror
                                 </div>
 
-                                {{-- Kode Aset --}}
+                                {{-- Kategori --}}
+                                <div class="col-md-3">
+                                    <label class="form-label fw-medium">Kategori <span class="text-danger">*</span></label>
+                                    <select name="kategori" class="form-select @error('kategori') is-invalid @enderror">
+                                        <option value="">-- Pilih --</option>
+                                        @foreach (\App\Models\Aset::KATEGORI as $val => $label)
+                                            <option value="{{ $val }}" {{ old('kategori', $aset->kategori) === $val ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('kategori')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- Tipe Barang --}}
+                                <div class="col-md-3">
+                                    <label class="form-label fw-medium">Tipe Barang</label>
+                                    <input type="text"
+                                           name="tipe_barang"
+                                           class="form-control @error('tipe_barang') is-invalid @enderror"
+                                           value="{{ old('tipe_barang', $aset->tipe_barang) }}"
+                                           placeholder="contoh: Meja Kayu">
+                                    @error('tipe_barang')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                {{-- Kode Barang (opsional) --}}
                                 <div class="col-md-4">
-                                    <label class="form-label fw-medium">Kode Aset</label>
+                                    <label class="form-label fw-medium">Kode Barang</label>
                                     <input type="text"
                                            name="kode_aset"
                                            class="form-control @error('kode_aset') is-invalid @enderror"
                                            value="{{ old('kode_aset', $aset->kode_aset) }}"
-                                           placeholder="contoh: AST-001" disabled>
+                                           placeholder="contoh: 2.07.02.01.020">
+                                    <div class="form-text">Kosongkan untuk dibuat otomatis dari kategori.</div>
                                     @error('kode_aset')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -135,15 +163,26 @@
                                 </div>
 
                                 {{-- Harga Perolehan --}}
+                                @php
+                                    $hargaRaw = old('harga_perolehan', $aset->harga_perolehan !== null ? (int) $aset->harga_perolehan : '');
+                                    $hargaDisplay = ($hargaRaw !== '' && $hargaRaw !== null)
+                                        ? number_format((float) $hargaRaw, 0, ',', '.') : '';
+                                @endphp
                                 <div class="col-md-8">
-                                    <label class="form-label fw-medium">Harga Perolehan (Rp)</label>
-                                    <input type="number"
-                                           name="harga_perolehan"
-                                           class="form-control @error('harga_perolehan') is-invalid @enderror"
-                                           value="{{ old('harga_perolehan', $aset->harga_perolehan) }}"
-                                           min="0" step="1000">
+                                    <label class="form-label fw-medium">Harga Perolehan</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="text"
+                                               id="harga_display"
+                                               class="form-control @error('harga_perolehan') is-invalid @enderror"
+                                               value="{{ $hargaDisplay }}"
+                                               placeholder="0"
+                                               inputmode="numeric"
+                                               autocomplete="off">
+                                    </div>
+                                    <input type="hidden" name="harga_perolehan" id="harga_perolehan" value="{{ $hargaRaw }}">
                                     @error('harga_perolehan')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
 
@@ -227,6 +266,22 @@ function previewFoto(input) {
         preview.classList.add('d-none');
     }
 }
+
+// Format input harga jadi kurs Indonesia (pemisah ribuan titik)
+(function () {
+    const disp = document.getElementById('harga_display');
+    const hidden = document.getElementById('harga_perolehan');
+    if (!disp || !hidden) return;
+
+    const sync = () => {
+        const digits = disp.value.replace(/\D/g, '');
+        disp.value = digits ? digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '';
+        hidden.value = digits;
+    };
+
+    disp.addEventListener('input', sync);
+    sync();
+})();
 </script>
 @endpush
 

@@ -54,8 +54,9 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="ps-4" style="width: 50px">#</th>
-                                <th>Nama Aset</th>
-                                <th>Kode Aset</th>
+                                <th>Kode Barang</th>
+                                <th>Nama Barang</th>
+                                <th>Kategori</th>
                                 <th>Sekolah</th>
                                 <th>Kondisi</th>
                                 <th>Dihapus Pada</th>
@@ -68,14 +69,15 @@
                                     <td class="ps-4 text-muted">
                                         {{ $loop->iteration + ($aset->currentPage() - 1) * $aset->perPage() }}
                                     </td>
-                                    <td class="fw-medium text-decoration-line-through text-muted">
-                                        {{ $item->nama_aset }}
-                                    </td>
                                     <td>
                                         <span class="badge bg-light text-secondary border">
                                             {{ $item->kode_aset ?? '-' }}
                                         </span>
                                     </td>
+                                    <td class="fw-medium text-decoration-line-through text-muted">
+                                        {{ $item->nama_aset }}
+                                    </td>
+                                    <td class="text-muted">{{ $item->kategoriLabel() }}</td>
                                     <td class="text-muted">{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
                                     <td>
                                         @if ($item->kondisi === 'baik')
@@ -120,7 +122,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">
+                                    <td colspan="8" class="text-center py-5 text-muted">
                                         <i class="ti ti-circle-check fs-2 d-block mb-2 text-success"></i>
                                         Tempat sampah kosong.
                                     </td>

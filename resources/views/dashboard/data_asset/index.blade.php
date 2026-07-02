@@ -41,10 +41,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="ps-4" style="width: 50px">#</th>
-                                <th>Nama Aset</th>
-                                <th>Kode Aset</th>
+                                <th>Kode Barang</th>
+                                <th>Nama Barang</th>
+                                <th>Kategori</th>
+                                <th>Tipe</th>
                                 <th>Sekolah</th>
                                 <th>Jumlah</th>
+                                <th>Harga Perolehan</th>
                                 <th>Lokasi</th>
                                 <th class="text-center pe-4" style="width: 130px">Aksi</th>
                             </tr>
@@ -55,14 +58,17 @@
                                     <td class="ps-4 text-muted">
                                         {{ $loop->iteration + ($aset->currentPage() - 1) * $aset->perPage() }}
                                     </td>
-                                    <td class="fw-medium">{{ $item->nama_aset }}</td>
                                     <td>
                                         <span class="badge bg-light text-secondary border">
                                             {{ $item->kode_aset ?? '-' }}
                                         </span>
                                     </td>
+                                    <td class="fw-medium">{{ $item->nama_aset }}</td>
+                                    <td>{{ $item->kategoriLabel() }}</td>
+                                    <td class="text-muted">{{ $item->tipe_barang ?? '-' }}</td>
                                     <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
                                     <td>{{ $item->jumlah }} {{ $item->satuan }}</td>
+                                    <td class="text-nowrap">{{ $item->hargaFormat() }}</td>
                                     <td class="text-muted">{{ $item->lokasi ?? '-' }}</td>
                                     <td class="text-center pe-4">
                                         <div class="d-flex gap-1 justify-content-center">
@@ -89,7 +95,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-5 text-muted">
+                                    <td colspan="10" class="text-center py-5 text-muted">
                                         <i class="ti ti-inbox fs-2 d-block mb-2"></i>
                                         Belum ada data aset.
                                     </td>

@@ -71,6 +71,9 @@ class AsetController extends Controller
         $validated = $request->validate([
             'sekolah_id'        => 'required|exists:sekolah,id',
             'nama_aset'         => 'required|string|max:255',
+            'kategori'          => 'required|in:mebel,elektronik,sarana_pembelajaran',
+            'tipe_barang'       => 'nullable|string|max:100',
+            'kode_aset'         => 'nullable|string|max:100|unique:aset,kode_aset',
             'kondisi'           => 'required|in:baik,rusak_ringan,rusak_berat',
             'jumlah'            => 'required|integer|min:1',
             'satuan'            => 'required|string|max:50',
@@ -81,7 +84,10 @@ class AsetController extends Controller
             'foto_bukti'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $validated['kode_aset']  = Aset::generateKode();
+        // Kode barang: pakai yang diisi manual, kalau kosong dibuat otomatis dari kategori
+        if (empty($validated['kode_aset'])) {
+            $validated['kode_aset'] = Aset::generateKode($validated['kategori']);
+        }
         $validated['foto_bukti'] = $request->hasFile('foto_bukti')
             ? $request->file('foto_bukti')->store('aset/foto', 'public')
             : '';
@@ -128,6 +134,8 @@ class AsetController extends Controller
         $validated = $request->validate([
             'sekolah_id'        => 'required|exists:sekolah,id',
             'nama_aset'         => 'required|string|max:255',
+            'kategori'          => 'required|in:mebel,elektronik,sarana_pembelajaran',
+            'tipe_barang'       => 'nullable|string|max:100',
             'kode_aset'         => 'nullable|string|max:100|unique:aset,kode_aset,' . $aset->id,
             'kondisi'           => 'required|in:baik,rusak_ringan,rusak_berat',
             'jumlah'            => 'required|integer|min:1',
@@ -138,6 +146,11 @@ class AsetController extends Controller
             'keterangan'        => 'nullable|string',
             'foto_bukti'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
+        // Kode barang: pakai yang diisi manual, kalau dikosongkan dibuat otomatis dari kategori
+        if (empty($validated['kode_aset'])) {
+            $validated['kode_aset'] = Aset::generateKode($validated['kategori']);
+        }
 
         if ($request->hasFile('foto_bukti')) {
             if ($aset->foto_bukti) {
