@@ -61,13 +61,36 @@
                         <span class="hide-menu">Kecamatan</span>
                     </a>
                 </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ request()->is('dashboard/sekolah*') ? 'active' : '' }}"
-                        href="{{ route('sekolah') }}" aria-expanded="false">
-                        <span><i class="ti ti-school"></i></span>
-                        <span class="hide-menu">Sekolah</span>
+
+             <li class="sidebar-item">
+                    <a class="sidebar-link has-arrow @if (request()->is('dashboard/sekolah*')) active @endif"
+                        href="javascript:vid(0)" aria-expanded="false">
+
+                        <span>
+                            <i class="ti ti-school"></i>
+                        </span>
+                        <span class="hide-menu">
+                            Sekolah
+                        </span>
                     </a>
+
+                    <ul aria-expanded="false"
+                        class="collapse first-level @if(request ()->is('dashboard/sekolah*')) in @endif">
+                        @foreach (['PAUD', 'SD', 'SMP'] as $jenjang)
+                            <li class="sidebar-item">
+                                <a href="{{ route('sekolah', ['jenjang' => $jenjang]) }}"
+                                    class="sidebar-link @if(request('jenjang') === $jenjang) active @endif">
+                                    <div class="round-16 d-flex align-center justify-content-center">
+                                        <i class="ti ti-circle"></i>
+                                    </div>
+                                    <span class="hide-menu">{{ $jenjang }}</span>
+                                </a>
+                            </li>
+
+                        @endforeach
+                    </ul>
                 </li>
+
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ request()->is('dashboard/operator*') ? 'active' : '' }}"
                         href="{{ route('operator') }}" aria-expanded="false">

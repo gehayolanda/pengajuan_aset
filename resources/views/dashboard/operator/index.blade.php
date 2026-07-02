@@ -6,7 +6,7 @@
             <div class="d-flex align-items-center gap-3">
                 <div class="d-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary"
                     style="width: 56px; height:56px;">
-                    <i class="ti ti-user-cog fs-3"></i>
+                    <i class="ti ti-user fs-3"></i>
                 </div>
 
                 <div>
@@ -16,11 +16,6 @@
                     </p>
                 </div>
             </div>
-
-            <a href="{{ route('operator.create') }}" class="btn btn-primary px-4">
-                <i class="ti ti-plus me-1"></i>
-                Tambah Operator
-            </a>
 
         </div>
     </div>

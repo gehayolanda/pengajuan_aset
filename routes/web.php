@@ -7,11 +7,12 @@ use App\Http\Controllers\KecamatanController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\PengajuanPemusnahanController;
 use App\Http\Controllers\SekolahController;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
 // Halaman Utama
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', function() {
+    return redirect()->route('login');
 });
 
 // Autentikasi (Guest)

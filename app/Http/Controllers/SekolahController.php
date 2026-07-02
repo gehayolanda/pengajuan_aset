@@ -27,6 +27,7 @@ class SekolahController extends Controller
     public function index(Request $request)
     {
         $search = $request->search;
+        $jenjang = $request->jenjang;
 
         $sekolah = Sekolah::with('operator')
             ->when($search, function ($query, $search) {
@@ -35,8 +36,15 @@ class SekolahController extends Controller
                         ->orWhere('npsn_sekolah', 'LIKE', "%{$search}%");
                 });
             })
+
+            ->when($jenjang, function ($query) use ($jenjang) {
+                $query->where('jenjang_sekolah', $jenjang);
+            })
+
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
+
         return view("dashboard.sekolah.index", compact("sekolah"));
     }
 
