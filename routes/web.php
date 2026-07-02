@@ -81,6 +81,11 @@ Route::prefix("dashboard")->middleware('auth')->group(function () {
             ->name('pengajuan-penghapusan-asset.store');
     });
 
+    // Export Excel: hanya admin & kepala_dinas (di atas route show agar tidak konflik)
+    Route::get('pengajuan/export', [PengajuanPemusnahanController::class, 'export'])
+        ->name('pengajuan-penghapusan-asset.export')
+        ->middleware(['role:admin|kepala_dinas']);
+
     // Show: semua role yang login (setelah create agar tidak konflik)
     Route::get('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'show'])
         ->name('pengajuan-penghapusan-asset.show');

@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class PengajuanPemusnahanController extends Controller
 {
@@ -278,5 +280,92 @@ class PengajuanPemusnahanController extends Controller
 
         $label = $request->status === 'disetujui' ? 'disetujui' : 'ditolak';
         return back()->with('success', "Pengajuan berhasil {$label}.");
+    }
+
+    // ── EXPORT EXCEL ───────────────────────────────────────────────────
+    public function export(Request $request)
+    {
+        $request->validate([
+            'mode' => 'required|in:minggu,bulan,tahun,rentang',
+        ]);
+
+        [$start, $end, $label] = $this->resolvePeriode($request);
+
+        $query = PengajuanPemusnahan::with(['aset', 'sekolah', 'pengaju', 'validator'])
+            ->whereBetween('created_at', [$start, $end]);
+
+        // Operator sekolah hanya miliknya sendiri (safety, walau fitur admin)
+        if (Auth::user()->hasRole('operator_sekolah')) {
+            $query->where('diajukan_oleh', Auth::id());
+        }
+
+        // Filter tambahan (opsional, ikut dari halaman index)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('sekolah_id') && !Auth::user()->hasRole('operator_sekolah')) {
+            $query->where('sekolah_id', $request->sekolah_id);
+        }
+
+        $pengajuans = $query->latest()->get();
+
+        $filename = 'pengajuan-penghapusan-aset-' . Str::slug($label) . '.xls';
+
+        return response()
+            ->view('dashboard.pengajuan.export', compact('pengajuans', 'label', 'start', 'end'))
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
+     * Tentukan rentang tanggal & label berdasarkan mode export.
+     *
+     * @return array{0: Carbon, 1: Carbon, 2: string}
+     */
+    private function resolvePeriode(Request $request): array
+    {
+        $bulanId = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        switch ($request->mode) {
+            case 'minggu':
+                // input type=week => "2026-W27"
+                $val = $request->input('minggu') ?: now()->format('o-\WW');
+                [$y, $w] = array_pad(explode('-W', $val), 2, null);
+                $start = Carbon::now()->setISODate((int) $y, (int) $w)->startOfWeek();
+                $end   = $start->copy()->endOfWeek();
+                $label = "Minggu ke-{$w} Tahun {$y} ({$start->format('d/m/Y')} - {$end->format('d/m/Y')})";
+                break;
+
+            case 'bulan':
+                $val   = $request->input('bulan') ?: now()->format('Y-m');
+                $start = Carbon::createFromFormat('Y-m', $val)->startOfMonth();
+                $end   = $start->copy()->endOfMonth();
+                $label = 'Bulan ' . $bulanId[(int) $start->format('n')] . ' ' . $start->format('Y');
+                break;
+
+            case 'tahun':
+                $y     = (int) ($request->input('tahun') ?: now()->year);
+                $start = Carbon::create($y, 1, 1)->startOfDay();
+                $end   = Carbon::create($y, 12, 31)->endOfDay();
+                $label = "Tahun {$y}";
+                break;
+
+            case 'rentang':
+            default:
+                $request->validate([
+                    'tanggal_mulai'   => 'required|date',
+                    'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+                ]);
+                $start = Carbon::parse($request->tanggal_mulai)->startOfDay();
+                $end   = Carbon::parse($request->tanggal_selesai)->endOfDay();
+                $label = "Periode {$start->format('d/m/Y')} s/d {$end->format('d/m/Y')}";
+                break;
+        }
+
+        return [$start, $end, $label];
     }
 }

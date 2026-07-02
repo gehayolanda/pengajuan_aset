@@ -69,6 +69,76 @@
     </div>
   </div>
 
+  {{-- Export Excel (Admin & Kepala Dinas) --}}
+  @hasanyrole('admin|kepala_dinas')
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+      <div class="d-flex align-items-center mb-2">
+        <i class="ti ti-file-spreadsheet me-2 text-success"></i>
+        <strong>Export Excel</strong>
+        <small class="text-muted ms-2">Unduh data pengajuan berdasarkan periode</small>
+      </div>
+      <form method="GET" action="{{ route('pengajuan-penghapusan-asset.export') }}"
+            class="row g-2 align-items-end" id="formExport">
+
+        {{-- Ikut membawa filter status & sekolah yang sedang aktif --}}
+        <input type="hidden" name="status" value="{{ request('status') }}">
+        <input type="hidden" name="sekolah_id" value="{{ request('sekolah_id') }}">
+
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Periode</label>
+          <select name="mode" id="exportMode" class="form-select form-select-sm">
+            <option value="bulan">Per Bulan</option>
+            <option value="minggu">Per Minggu</option>
+            <option value="tahun">Per Tahun</option>
+            <option value="rentang">Rentang Tanggal</option>
+          </select>
+        </div>
+
+        {{-- Per Bulan --}}
+        <div class="col-md-3 export-field" data-mode="bulan">
+          <label class="form-label small mb-1">Bulan</label>
+          <input type="month" name="bulan" class="form-control form-control-sm"
+                 value="{{ now()->format('Y-m') }}">
+        </div>
+
+        {{-- Per Minggu --}}
+        <div class="col-md-3 export-field d-none" data-mode="minggu">
+          <label class="form-label small mb-1">Minggu</label>
+          <input type="week" name="minggu" class="form-control form-control-sm"
+                 value="{{ now()->format('o-\WW') }}">
+        </div>
+
+        {{-- Per Tahun --}}
+        <div class="col-md-3 export-field d-none" data-mode="tahun">
+          <label class="form-label small mb-1">Tahun</label>
+          <select name="tahun" class="form-select form-select-sm">
+            @for($y = now()->year; $y >= now()->year - 10; $y--)
+              <option value="{{ $y }}">{{ $y }}</option>
+            @endfor
+          </select>
+        </div>
+
+        {{-- Rentang Tanggal (antar bulan / antar tahun) --}}
+        <div class="col-md-3 export-field d-none" data-mode="rentang">
+          <label class="form-label small mb-1">Tanggal Mulai</label>
+          <input type="date" name="tanggal_mulai" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3 export-field d-none" data-mode="rentang">
+          <label class="form-label small mb-1">Tanggal Selesai</label>
+          <input type="date" name="tanggal_selesai" class="form-control form-control-sm">
+        </div>
+
+        <div class="col-auto">
+          <button type="submit" class="btn btn-sm btn-success">
+            <i class="ti ti-download me-1"></i> Export Excel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  @endhasanyrole
+
   {{-- Table --}}
   <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
@@ -255,5 +325,31 @@
 @endif
 @endforeach
 @endrole
+
+@push('scripts')
+<script>
+  (function () {
+    const modeSelect = document.getElementById('exportMode');
+    if (!modeSelect) return;
+
+    const fields = document.querySelectorAll('.export-field');
+
+    function toggleFields() {
+      const mode = modeSelect.value;
+      fields.forEach(function (el) {
+        const active = el.dataset.mode === mode;
+        el.classList.toggle('d-none', !active);
+        // Nonaktifkan input yang tersembunyi agar tidak ikut terkirim
+        el.querySelectorAll('input, select').forEach(function (input) {
+          input.disabled = !active;
+        });
+      });
+    }
+
+    modeSelect.addEventListener('change', toggleFields);
+    toggleFields();
+  })();
+</script>
+@endpush
 
 </x-layouts.app>
