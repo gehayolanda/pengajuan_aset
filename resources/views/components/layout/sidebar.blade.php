@@ -38,26 +38,43 @@
                     </a>
                 </li>
 
+                @role('operator_sekolah')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ request()->is('dashboard/sekolah*') ? 'active' : '' }}"
+                        href="{{ route('sekolah.my') }}" aria-expanded="false">
+                        <span><i class="ti ti-school"></i></span>
+                        <span class="hide-menu">Sekolah Saya</span>
+                    </a>
+                </li>
+                @endrole
+
                 {{-- MASTER DATA (admin only) --}}
                 @role('admin')
-                    <li class="nav-small-cap">
-                        <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-                        <span class="hide-menu">MASTER DATA</span>
-                    </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link {{ request()->is('dashboard/kecamatan*') ? 'active' : '' }}"
-                            href="{{ route('kecamatan') }}" aria-expanded="false">
-                            <span><i class="ti ti-map"></i></span>
-                            <span class="hide-menu">Kecamatan</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link {{ request()->is('dashboard/sekolah*') ? 'active' : '' }}"
-                            href="{{ route('sekolah') }}" aria-expanded="false">
-                            <span><i class="ti ti-school"></i></span>
-                            <span class="hide-menu">Sekolah</span>
-                        </a>
-                    </li>
+                <li class="nav-small-cap">
+                    <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">MASTER DATA</span>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ request()->is('dashboard/kecamatan*') ? 'active' : '' }}"
+                        href="{{ route('kecamatan') }}" aria-expanded="false">
+                        <span><i class="ti ti-map"></i></span>
+                        <span class="hide-menu">Kecamatan</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ request()->is('dashboard/sekolah*') ? 'active' : '' }}"
+                        href="{{ route('sekolah') }}" aria-expanded="false">
+                        <span><i class="ti ti-school"></i></span>
+                        <span class="hide-menu">Sekolah</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ request()->is('dashboard/operator*') ? 'active' : '' }}"
+                        href="{{ route('operator') }}" aria-expanded="false">
+                        <span><i class="ti ti-users"></i></span>
+                        <span class="hide-menu">Operator</span>
+                    </a>
+                </li>
                 @endrole
 
                 {{-- PENGELOLAAN ASET (admin & operator_sekolah) --}}

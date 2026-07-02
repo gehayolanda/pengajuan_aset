@@ -7,15 +7,26 @@ use App\Models\Kecamatan;
 use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class SekolahController extends Controller
 {
+    public function mySekolah()
+    {
+        $sekolah = Sekolah::with(['kecamatan', 'kabupaten'])
+            ->where('operator_id', Auth::id())
+            ->get();
+
+        return view('dashboard.sekolah.my', compact('sekolah'));
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $sekolah = Sekolah::with(['operator'])->orderBy('id', 'desc')->get();
+        $sekolah = Sekolah::with(['operator'])->orderBy('id', 'desc')->paginate(10);
         return view("dashboard.sekolah.index", compact("sekolah"));
     }
 
@@ -36,8 +47,8 @@ class SekolahController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "nama_sekolah"=> "required|string",
-            "npsn_sekolah" => "required|string|unique:sekolah,npsn_sekolah",
+            "nama_sekolah" => "required|string",
+            "npsn_sekolah" => "required|string|unique:sekolah,npsn_sekolah|unique:users,login_id",
             "alamat_sekolah" => "required|string",
             "kecamatan_id" => "nullable|exists:kecamatan,id",
             "kabupaten_id" => "nullable|exists:kabupaten,id",
@@ -46,12 +57,30 @@ class SekolahController extends Controller
             "operator_id" => "nullable|exists:users,id",
         ]);
 
-        $data = $request->all();
-        $sekolah = new Sekolah();
+        DB::transaction(function () use ($request) {
+            $operator = User::create([
+                'name' => $request->nama_sekolah,
+                'email' => $request->nama_sekolah . 'sch.id',
+                'login_id' => $request->npsn_sekolah,
+                'password' => bcrypt($request->npsn_sekolah),
+            ]);
 
-        $sekolah->create($data);
+            $operator->assignRole('operator_sekolah');
 
-        return redirect()->route("sekolah")->with("success","Sekolah berhasil ditambahkan");
+            Sekolah::create([
+                'nama_sekolah' => $request->nama_sekolah,
+                'npsn_sekolah' => $request->npsn_sekolah,
+                "alamat_sekolah" => $request->alamat_sekolah,
+                "kecamatan_id" =>  $request->kecamatan_id,
+                "kabupaten_id" =>  $request->kabupaten_id,
+                "jenjang_sekolah" =>  $request->jenjang_sekolah,
+                "scope_pengelola" =>  $request->scope_pengelola,
+                "operator_id" =>  $operator->id,
+            ]);
+        });
+
+
+        return redirect()->route("sekolah")->with("success", "Sekolah berhasil ditambahkan");
     }
 
     /**
@@ -91,20 +120,29 @@ class SekolahController extends Controller
 
         $request->validate([
             'nama_sekolah' => 'required|string',
-            'npsn_sekolah' => 'required|string|unique:sekolah,npsn_sekolah,' . $sekolah->id,
+            'npsn_sekolah' => 'required|string|unique:sekolah,npsn_sekolah,' . $sekolah->id . '|unique:users,login_id,' . $sekolah->operator_id,
             'alamat_sekolah' => 'required|string',
             'kecamatan_id' => 'nullable|exists:kecamatan,id',
             'kabupaten_id' => 'nullable|exists:kabupaten,id',
             'jenjang_sekolah' => 'required|in:PAUD,SD,SMP',
             'scope_pengelola' => 'required|in:kecamatan,kabupaten',
-            'operator_id' => 'required|exists:users,id',
         ]);
 
-        $data = $request->all();
-        $sekolah->update($data);
+        DB::transaction(function () use ($request, $sekolah) {
+            $sekolah->update($request->only([
+                'nama_sekolah', 'npsn_sekolah', 'alamat_sekolah',
+                'kecamatan_id', 'kabupaten_id', 'jenjang_sekolah', 'scope_pengelolaan',
+            ]));
+
+            if ($sekolah->operator) {
+                $sekolah->operator->update([
+                    'nama' => $request->npsn_sekolah
+                ]);
+            }
+        });
+
 
         return redirect()->route('sekolah')->with('success', 'Sekolah berhasil diperbaharui.');
-
     }
 
     /**
@@ -113,7 +151,11 @@ class SekolahController extends Controller
     public function destroy(string $id)
     {
         $sekolah = Sekolah::findOrFail($id);
-        $sekolah->delete();
+
+        DB::transaction(function () use ($sekolah) {
+            $sekolah->operator?->delete();
+            $sekolah->delete();
+        });
 
         return redirect()->route('sekolah')->with('success', 'Sekolah berhasil dihapus.');
     }

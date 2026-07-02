@@ -13,12 +13,17 @@
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul>
-                                @foreach ($errors->all() as $err)
+                                @foreach ($errors->all( ) as $err)
                                     <li>{{ $err }}</li>
                                 @endforeach
                             </ul>
                         </div>
                     @endif
+                    <div class="alert alert-info">
+                        <i class="ti ti-info-circle"></i>
+                        Akun operator dibuat otomatis. <strong>Login = NPSN</strong>, <strong>Password awal =
+                            NPSN</strong>.
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Sekolah</label>
                         <input type="text" class="form-control" name="nama_sekolah"/>
@@ -73,15 +78,6 @@
                         </select>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Operator Sekolah</label>
-                        <select class="form-select" name="operator_id">
-                            <option value="">-- Pilih Operator Sekolah --</option>
-                            @foreach ($operators as $operator )
-                                <option value="{{ $operator->id }}">{{ $operator->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
 
                     <button type="submit" class="btn btn-primary">
                         <i class="ti ti-check"></i> Simpan

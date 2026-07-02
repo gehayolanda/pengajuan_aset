@@ -53,7 +53,7 @@
 
                                     {{-- No --}}
                                     <td class="text-center fw-semibold">
-                                        {{ $loop->iteration }}
+                                        {{ $sekolah->firstItem() + $loop->index }}
                                     </td>
 
                                     {{-- Nama Sekolah --}}
@@ -155,6 +155,25 @@
                         </tbody>
 
                     </table>
+                </div>
+            </div>
+
+            {{-- Footer Pagination --}}
+            <div class="card-footer bg-white border-top">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small">
+                        Menampilkan
+                        <strong>{{ $sekolah->firstItem() ?? 0 }}</strong>
+                        -
+                        <strong>{{ $sekolah->lastItem() ?? 0 }}</strong>
+                        dari
+                        <strong>{{ $sekolah->total() }}</strong>
+                        data.
+                    </div>
+
+                    <div>
+                        {{ $sekolah->links('pagination::bootstrap-5') }}
+                    </div>
                 </div>
             </div>
         </div>

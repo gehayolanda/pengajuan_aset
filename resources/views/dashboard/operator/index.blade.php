@@ -156,11 +156,23 @@
 
         </div>
 
-        @if ($operators->hasPages())
-            <div class="card-footer bg-white">
-                {{ $operators->links() }}
+       <div class="card-footer bg-white border-top">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small">
+                        Menampilkan
+                        <strong>{{ $operators->firstItem() ?? 0 }}</strong>
+                        -
+                        <strong>{{ $operators->lastItem() ?? 0 }}</strong>
+                        dari
+                        <strong>{{ $operators->total() }}</strong>
+                        data.
+                    </div>
+
+                    <div>
+                        {{ $operators->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
             </div>
-        @endif
 
     </div>
 
