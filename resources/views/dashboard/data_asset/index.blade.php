@@ -13,15 +13,14 @@
                     </ol>
                 </nav>
             </div>
+
             <div class="d-flex gap-2">
-                @hasanyrole('admin|operator_sekolah')
                     <a href="{{ route('aset.trash') }}" class="btn btn-outline-danger btn-sm">
                         <i class="ti ti-trash me-1"></i> Tempat Sampah
                     </a>
                     <a href="{{ route('aset.create') }}" class="btn btn-primary btn-sm">
                         <i class="ti ti-plus me-1"></i> Tambah Aset
                     </a>
-                @endhasanyrole
             </div>
         </div>
 
