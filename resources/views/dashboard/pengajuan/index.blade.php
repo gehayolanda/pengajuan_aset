@@ -149,7 +149,7 @@
             <tr>
               {{-- PERBAIKAN 4: Penomoran pagination yang lebih aman dan rapi --}}
               <td class="ps-3 text-muted">{{ $pengajuans->firstItem() + $loop->index }}</td>
-              <td><code>{{ $item->nomor_pengajuan }}</code></td>
+              <td>{{ $item->nomor_pengajuan }}</td>
               <td>
                 {{-- PERBAIKAN 3: Nullsafe operator (?->) untuk mencegah error relasi kosong --}}
                 <div>{{ $item->aset?->nama_aset ?? '-' }}</div>
