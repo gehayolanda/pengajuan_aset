@@ -32,7 +32,7 @@ class SekolahController extends Controller
         $sekolah = Sekolah::with('operator')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('nama_sekolah', 'LIKE', "%{ $search }%")
+                    $q->where('nama_sekolah', 'LIKE', "%{$search}%")
                         ->orWhere('npsn_sekolah', 'LIKE', "%{$search}%");
                 });
             })
