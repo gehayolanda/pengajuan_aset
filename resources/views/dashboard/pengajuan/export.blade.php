@@ -1,6 +1,6 @@
 @php
     $statusText = [
-        'menunggu'  => 'Menunggu',
+        'diajukan'  => 'Diajukan',
         'diproses'  => 'Diproses',
         'disetujui' => 'Disetujui',
         'ditolak'   => 'Ditolak',

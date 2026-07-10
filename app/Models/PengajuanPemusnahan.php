@@ -58,7 +58,7 @@ class PengajuanPemusnahan extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'menunggu'  => '<span class="badge bg-warning text-dark">Menunggu</span>',
+            'diajukan'  => '<span class="badge bg-warning text-dark">Diajukan</span>',
             'diproses'  => '<span class="badge bg-info text-dark">Diproses</span>',
             'disetujui' => '<span class="badge bg-success">Disetujui</span>',
             'ditolak'   => '<span class="badge bg-danger">Ditolak</span>',
@@ -75,22 +75,23 @@ class PengajuanPemusnahan extends Model
     }
 
     // ── Auto-generate nomor pengajuan ──────────────────────────────────
-    // PengajuanPemusnahan.php — generateNomor() tetap di model lama, tanpa tabel baru
-public static function generateNomor(): string
-{
-    $year  = now()->format('Y');
-    $month = now()->format('m');
+    // Format: PHA/{tahun}/{bulan}/{urutan}, urutan reset tiap bulan.
+    public static function generateNomor(): string
+    {
+        $year  = now()->format('Y');
+        $month = now()->format('m');
 
-    // lockForUpdate mengunci baris-baris bulan ini yang sudah ada,
-    // sehingga request lain yang juga generateNomor() untuk bulan
-    // yang sama akan menunggu transaction ini selesai (commit/rollback)
-    // SELAMA sudah ada minimal satu baris untuk dikunci.
-    $last = self::withTrashed() // ikutkan yang soft-deleted agar nomor tidak pernah dipakai ulang
-        ->whereYear('created_at', $year)
-        ->whereMonth('created_at', $month)
-        ->lockForUpdate()
-        ->count();
+        // withTrashed() supaya nomor pengajuan yang sudah soft-deleted tetap
+        // dihitung (masih terikat unique constraint di DB, jadi urutannya
+        // tidak boleh dipakai ulang). lockForUpdate() mengunci baris-baris
+        // bulan ini yang sudah ada, sehingga request lain yang bersamaan
+        // menunggu transaction ini selesai sebelum menghitung urutan berikutnya.
+        $last = self::withTrashed()
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->lockForUpdate()
+            ->count();
 
-    return sprintf('PHA/%s/%s/%04d', $year, $month, $last + 1);
-}
+        return sprintf('PHA/%s/%s/%04d', $year, $month, $last + 1);
+    }
 }

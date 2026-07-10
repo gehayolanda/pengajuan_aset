@@ -115,17 +115,17 @@
                     </li>
                 @endhasanyrole
 
-                {{-- VALIDASI (kepala_dinas) --}}
+                {{-- PEMANTAUAN (kepala_dinas, hanya melihat) --}}
                 @role('kepala_dinas')
                     <li class="nav-small-cap">
                         <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-                        <span class="hide-menu">VALIDASI</span>
+                        <span class="hide-menu">PEMANTAUAN</span>
                     </li>
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ request()->is('dashboard/pengajuan*') ? 'active' : '' }}"
                             href="{{ route('pengajuan-penghapusan-asset.index') }}" aria-expanded="false">
                             <span><i class="ti ti-clipboard-check"></i></span>
-                            <span class="hide-menu">Validasi Pengajuan</span>
+                            <span class="hide-menu">Pengajuan Pemusnahan</span>
                         </a>
                     </li>
                 @endrole

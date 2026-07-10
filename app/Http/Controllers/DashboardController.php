@@ -21,27 +21,27 @@ class DashboardController extends Controller
             $totalAset         = Aset::where('sekolah_id', $sekolahId)->count();
             $totalAsetHapus    = Aset::onlyTrashed()->where('sekolah_id', $sekolahId)->count();
             $totalPengajuan    = PengajuanPemusnahan::where('diajukan_oleh', $user->id)->count();
-            $pengajuanMenunggu  = PengajuanPemusnahan::where('diajukan_oleh', $user->id)->where('status', 'menunggu')->count();
+            $pengajuanMenunggu  = PengajuanPemusnahan::where('diajukan_oleh', $user->id)->where('status', 'diajukan')->count();
             $pengajuanDisetujui = PengajuanPemusnahan::where('diajukan_oleh', $user->id)->where('status', 'disetujui')->count();
             $pengajuanDitolak   = PengajuanPemusnahan::where('diajukan_oleh', $user->id)->where('status', 'ditolak')->count();
 
             $pengajuanTerbaru      = PengajuanPemusnahan::with(['aset', 'sekolah', 'pengaju'])
                 ->where('diajukan_oleh', $user->id)->latest()->take(5)->get();
             $pengajuanMenungguList = PengajuanPemusnahan::with(['aset', 'sekolah'])
-                ->where('diajukan_oleh', $user->id)->where('status', 'menunggu')->latest()->take(5)->get();
+                ->where('diajukan_oleh', $user->id)->where('status', 'diajukan')->latest()->take(5)->get();
 
         } elseif ($user->hasRole('kepala_dinas')) {
             $totalSekolah      = null;
             $totalAset         = null;
             $totalAsetHapus    = null;
             $totalPengajuan    = PengajuanPemusnahan::count();
-            $pengajuanMenunggu  = PengajuanPemusnahan::where('status', 'menunggu')->count();
+            $pengajuanMenunggu  = PengajuanPemusnahan::where('status', 'diajukan')->count();
             $pengajuanDisetujui = PengajuanPemusnahan::where('status', 'disetujui')->count();
             $pengajuanDitolak   = PengajuanPemusnahan::where('status', 'ditolak')->count();
 
             $pengajuanTerbaru      = PengajuanPemusnahan::with(['aset', 'sekolah', 'pengaju'])->latest()->take(5)->get();
             $pengajuanMenungguList = PengajuanPemusnahan::with(['aset', 'sekolah'])
-                ->where('status', 'menunggu')->latest()->take(5)->get();
+                ->where('status', 'diajukan')->latest()->take(5)->get();
 
         } else {
             // admin
@@ -49,13 +49,13 @@ class DashboardController extends Controller
             $totalAset         = Aset::count();
             $totalAsetHapus    = Aset::onlyTrashed()->count();
             $totalPengajuan    = PengajuanPemusnahan::count();
-            $pengajuanMenunggu  = PengajuanPemusnahan::where('status', 'menunggu')->count();
+            $pengajuanMenunggu  = PengajuanPemusnahan::where('status', 'diajukan')->count();
             $pengajuanDisetujui = PengajuanPemusnahan::where('status', 'disetujui')->count();
             $pengajuanDitolak   = PengajuanPemusnahan::where('status', 'ditolak')->count();
 
             $pengajuanTerbaru      = PengajuanPemusnahan::with(['aset', 'sekolah', 'pengaju'])->latest()->take(5)->get();
             $pengajuanMenungguList = PengajuanPemusnahan::with(['aset', 'sekolah'])
-                ->where('status', 'menunggu')->latest()->take(5)->get();
+                ->where('status', 'diajukan')->latest()->take(5)->get();
         }
 
         return view('dashboard.index', compact(

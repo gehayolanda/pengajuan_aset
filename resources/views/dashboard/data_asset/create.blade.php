@@ -143,7 +143,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label fw-medium">Satuan <span class="text-danger">*</span></label>
                                     <select name="satuan" class="form-select @error('satuan') is-invalid @enderror">
-                                        @foreach (['unit', 'buah', 'set', 'lembar', 'pasang', 'lusin'] as $s)
+                                        @foreach (['unit', 'set', 'lembar', 'pasang', 'lusin'] as $s)
                                             <option value="{{ $s }}" {{ old('satuan', 'unit') === $s ? 'selected' : '' }}>
                                                 {{ ucfirst($s) }}
                                             </option>

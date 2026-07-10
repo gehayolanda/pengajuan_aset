@@ -39,7 +39,7 @@
         <div class="col-md-3">
           <select name="status" class="form-select form-select-sm">
             <option value="">-- Semua Status --</option>
-            <option value="menunggu"  {{ request('status') === 'menunggu'  ? 'selected' : '' }}>Menunggu</option>
+            <option value="diajukan"  {{ request('status') === 'diajukan'  ? 'selected' : '' }}>Diajukan</option>
             <option value="diproses"  {{ request('status') === 'diproses'  ? 'selected' : '' }}>Diproses</option>
             <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
             <option value="ditolak"   {{ request('status') === 'ditolak'   ? 'selected' : '' }}>Ditolak</option>
@@ -160,15 +160,17 @@
           <tbody>
             @forelse($pengajuans as $item)
             <tr>
-              <td class="ps-3 text-muted">{{ $loop->iteration + ($pengajuans->currentPage() - 1) * $pengajuans->perPage() }}</td>
+              {{-- PERBAIKAN 4: Penomoran pagination yang lebih aman dan rapi --}}
+              <td class="ps-3 text-muted">{{ $pengajuans->firstItem() + $loop->index }}</td>
               <td><code>{{ $item->nomor_pengajuan }}</code></td>
               <td>
-                <div>{{ $item->aset->nama_aset ?? '-' }}</div>
-                <small class="text-muted">{{ $item->aset->kode_aset ?? '' }}</small>
+                {{-- PERBAIKAN 3: Nullsafe operator (?->) untuk mencegah error relasi kosong --}}
+                <div>{{ $item->aset?->nama_aset ?? '-' }}</div>
+                <small class="text-muted">{{ $item->aset?->kode_aset ?? '' }}</small>
               </td>
-              <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
+              <td>{{ $item->sekolah?->nama_sekolah ?? '-' }}</td>
               <td>{{ $item->metode_label }}</td>
-              <td>{{ $item->jumlah_diajukan }} {{ $item->aset->satuan ?? '' }}</td>
+              <td>{{ $item->jumlah_diajukan }} {{ $item->aset?->satuan ?? '' }}</td>
               <td>{!! $item->status_label !!}</td>
               <td><small>{{ $item->created_at?->format('d/m/Y') ?? '-' }}</small></td>
               <td class="text-center pe-3">
@@ -179,8 +181,8 @@
                     <i class="ti ti-eye"></i>
                   </a>
 
-                  {{-- Edit & Hapus: hanya operator pemilik, status masih menunggu --}}
-                  @if($item->status === 'menunggu' && $item->diajukan_oleh === Auth::id())
+                  {{-- Edit & Hapus: hanya operator pemilik, status masih diajukan --}}
+                  @if($item->status === 'diajukan' && $item->diajukan_oleh === Auth::id())
                   <a href="{{ route('pengajuan-penghapusan-asset.edit', $item) }}"
                      class="btn btn-sm btn-outline-warning" title="Edit">
                     <i class="ti ti-edit"></i>
@@ -194,19 +196,14 @@
                   </form>
                   @endif
 
-                  {{-- Admin: tombol Proses (hanya status menunggu) --}}
+                  {{-- Admin: tombol Proses & Setujui/Tolak (Kepala Dinas hanya melihat) --}}
                   @role('admin')
-                  @if($item->status === 'menunggu')
+                  @if($item->status === 'diajukan')
                   <button type="button" class="btn btn-sm btn-outline-info" title="Proses"
                           data-bs-toggle="modal" data-bs-target="#modalProses{{ $item->id }}">
                     <i class="ti ti-settings"></i>
                   </button>
-                  @endif
-                  @endrole
-
-                  {{-- Kadis: tombol Setujui/Tolak (hanya status diproses) --}}
-                  @role('kepala_dinas')
-                  @if($item->status === 'diproses')
+                  @elseif ($item->status === 'diproses')
                   <button type="button" class="btn btn-sm btn-outline-success" title="Setujui / Tolak"
                           data-bs-toggle="modal" data-bs-target="#modalValidasi{{ $item->id }}">
                     <i class="ti ti-check"></i>
@@ -238,37 +235,39 @@
 
 </div>
 
-{{-- Modal Proses (Admin: menunggu → diproses) --}}
+{{-- Modal Proses (Admin: diajukan → diproses) --}}
 @role('admin')
 @foreach($pengajuans as $item)
-@if($item->status === 'menunggu')
+@if($item->status === 'diajukan')
 <div class="modal fade" id="modalProses{{ $item->id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
         @csrf @method('PATCH')
+        {{-- PERBAIKAN 2: Menambahkan input hidden status --}}
+        <input type="hidden" name="status" value="diproses">
         <div class="modal-header">
           <h5 class="modal-title"><i class="ti ti-settings me-1 text-info"></i> Proses Pengajuan</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <p class="text-muted mb-3">
-            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset->nama_aset ?? '-' }}
+            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
           </p>
           <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
             <i class="ti ti-info-circle"></i>
-            <span>Pengajuan akan diteruskan ke <strong>Kepala Dinas</strong> untuk disetujui atau ditolak.</span>
+            <span>Pengajuan akan berstatus <strong>Diproses</strong>. Anda dapat langsung menyetujui atau menolaknya setelah ini.</span>
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Catatan (opsional)</label>
             <textarea name="catatan_validasi" class="form-control" rows="3"
-                      placeholder="Catatan untuk Kepala Dinas…"></textarea>
+                      placeholder="Catatan…"></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
           <button type="submit" class="btn btn-info text-white">
-            <i class="ti ti-send me-1"></i> Teruskan ke Kadis
+            <i class="ti ti-settings me-1"></i> Proses Pengajuan
           </button>
         </div>
       </form>
@@ -279,8 +278,8 @@
 @endforeach
 @endrole
 
-{{-- Modal Validasi (Kepala Dinas: diproses → disetujui/ditolak) --}}
-@role('kepala_dinas')
+{{-- Modal Validasi (Admin: diproses → disetujui/ditolak) --}}
+@role('admin')
 @foreach($pengajuans as $item)
 @if($item->status === 'diproses')
 <div class="modal fade" id="modalValidasi{{ $item->id }}" tabindex="-1" aria-hidden="true">
@@ -294,7 +293,7 @@
         </div>
         <div class="modal-body">
           <p class="text-muted mb-3">
-            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset->nama_aset ?? '-' }}
+            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
           </p>
           <div class="mb-3">
             <label class="form-label fw-semibold">Keputusan <span class="text-danger">*</span></label>

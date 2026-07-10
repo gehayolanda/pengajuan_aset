@@ -98,7 +98,7 @@
                         <div class="d-flex align-items-center justify-content-between p-3 rounded bg-light-warning">
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-warning text-dark"><i class="ti ti-clock"></i></span>
-                                <span class="fw-medium">Menunggu</span>
+                                <span class="fw-medium">Diajukan</span>
                             </div>
                             <span class="fw-bold fs-5">{{ $pengajuanMenunggu }}</span>
                         </div>
@@ -134,7 +134,7 @@
                         <h5 class="card-title fw-semibold mb-0">
                             <i class="ti ti-clock me-1 text-warning"></i> Menunggu Validasi
                         </h5>
-                        <a href="{{ route('pengajuan-penghapusan-asset.index') }}?status=menunggu"
+                        <a href="{{ route('pengajuan-penghapusan-asset.index') }}?status=diajukan"
                            class="btn btn-sm btn-outline-warning">Lihat Semua</a>
                     </div>
                     @if($pengajuanMenungguList->count())

@@ -43,11 +43,11 @@
                                 <th>Kode Barang</th>
                                 <th>Nama Barang</th>
                                 <th>Kategori</th>
-                                <th>Tipe</th>
+                                <th>Lokasi</th>
                                 <th>Sekolah</th>
                                 <th>Jumlah</th>
                                 <th>Harga Perolehan</th>
-                                <th>Lokasi</th>
+                                <th>Gambar</th>
                                 <th class="text-center pe-4" style="width: 130px">Aksi</th>
                             </tr>
                         </thead>
@@ -64,11 +64,19 @@
                                     </td>
                                     <td class="fw-medium">{{ $item->nama_aset }}</td>
                                     <td>{{ $item->kategoriLabel() }}</td>
-                                    <td class="text-muted">{{ $item->tipe_barang ?? '-' }}</td>
                                     <td>{{ $item->sekolah->nama_sekolah ?? '-' }}</td>
                                     <td>{{ $item->jumlah }} {{ $item->satuan }}</td>
                                     <td class="text-nowrap">{{ $item->hargaFormat() }}</td>
                                     <td class="text-muted">{{ $item->lokasi ?? '-' }}</td>
+                                    <td class="text-muted">
+                                        <div class="d-flex justify-content-center">
+                                            @hasanyrole('admin|operator_sekolah')
+                                                <a href="{{ url('public/' . $item->foto_bukti) }}" class="btn btn-primary btn-sm">
+                                                    <i class="ti ti-file fs-3"></i> Foto Barang
+                                                </a>
+                                            @endhasanyrole
+                                        </div>
+                                    </td>
                                     <td class="text-center pe-4">
                                         <div class="d-flex gap-1 justify-content-center">
                                             @hasanyrole('admin|operator_sekolah')

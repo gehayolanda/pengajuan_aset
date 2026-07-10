@@ -103,12 +103,12 @@ Route::prefix("dashboard")->middleware('auth')->group(function () {
             ->name('pengajuan-penghapusan-asset.destroy');
     });
 
-    // Validasi: hanya admin & kepala_dinas
+    // Validasi: hanya admin (Kepala Dinas hanya bisa melihat, tidak input apa pun)
     Route::patch(
         'pengajuan/{pengajuanPemusnahan}/validasi',
         [PengajuanPemusnahanController::class, 'validasi']
     )->name('pengajuan-penghapusan-asset.validasi')
-     ->middleware(['role:admin|kepala_dinas']);
+     ->middleware(['role:admin']);
 
     Route::get('operator', [OperatorController::class, 'index'])->middleware(['auth', 'role:admin'])->name('operator');
     Route::get('operator/create', [OperatorController::class, 'create'])->name('operator.create');

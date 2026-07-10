@@ -81,10 +81,10 @@
 
         {{-- Validasi & Info Validator --}}
         <div class="col-lg-4">
-            {{-- Form Validasi (khusus admin & kepala_dinas, status masih menunggu) --}}
-            {{-- Admin: proses pengajuan (menunggu → diproses) --}}
+            {{-- Form Validasi (khusus admin, Kepala Dinas hanya melihat) --}}
+            {{-- Admin: proses pengajuan (diajukan → diproses) --}}
             @role('admin')
-            @if($pengajuan->status === 'menunggu')
+            @if($pengajuan->status === 'diajukan')
             <div class="card shadow-none border border-info mb-3">
                 <div class="card-body p-4">
                     <h5 class="fw-semibold mb-3 text-info">
@@ -92,17 +92,18 @@
                     </h5>
                     <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
                         <i class="ti ti-info-circle"></i>
-                        <span>Pengajuan akan diteruskan ke <strong>Kepala Dinas</strong> untuk disetujui atau ditolak.</span>
+                        <span>Pengajuan akan berstatus <strong>Diproses</strong>. Anda dapat langsung menyetujui atau menolaknya setelah ini.</span>
                     </div>
                     <form action="{{ route('pengajuan-penghapusan-asset.validasi', $pengajuan) }}" method="POST">
                         @csrf @method('PATCH')
+                        <input type="hidden" name="status" value="diproses">
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Catatan (opsional)</label>
                             <textarea name="catatan_validasi" class="form-control" rows="3"
-                                      placeholder="Catatan untuk Kepala Dinas…"></textarea>
+                                      placeholder="Catatan…"></textarea>
                         </div>
                         <button type="submit" class="btn btn-info text-white w-100">
-                            <i class="ti ti-send me-1"></i> Teruskan ke Kadis
+                            <i class="ti ti-settings me-1"></i> Proses Pengajuan
                         </button>
                     </form>
                 </div>
@@ -110,8 +111,8 @@
             @endif
             @endrole
 
-            {{-- Kepala Dinas: setujui atau tolak (diproses → disetujui/ditolak) --}}
-            @role('kepala_dinas')
+            {{-- Admin: setujui atau tolak (diproses → disetujui/ditolak; Kepala Dinas hanya melihat) --}}
+            @role('admin')
             @if($pengajuan->status === 'diproses')
             <div class="card shadow-none border border-warning mb-3">
                 <div class="card-body p-4">
@@ -150,7 +151,7 @@
             @endrole
 
             {{-- Info Validator (jika sudah divalidasi) --}}
-            @if($pengajuan->status !== 'menunggu')
+            @if($pengajuan->status !== 'diajukan')
             <div class="card shadow-none border {{ $pengajuan->status === 'disetujui' ? 'border-success' : 'border-danger' }}">
                 <div class="card-body p-4">
                     <h5 class="fw-semibold mb-3 {{ $pengajuan->status === 'disetujui' ? 'text-success' : 'text-danger' }}">
@@ -173,8 +174,8 @@
             </div>
             @endif
 
-            {{-- Aksi edit/hapus untuk operator pemilik (status masih menunggu) --}}
-            @if($pengajuan->status === 'menunggu' && $pengajuan->diajukan_oleh === Auth::id())
+            {{-- Aksi edit/hapus untuk operator pemilik (status masih diajukan) --}}
+            @if($pengajuan->status === 'diajukan' && $pengajuan->diajukan_oleh === Auth::id())
             <div class="card shadow-none border mt-3">
                 <div class="card-body p-4">
                     <h5 class="fw-semibold mb-3">Aksi</h5>

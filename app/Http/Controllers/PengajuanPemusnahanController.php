@@ -102,8 +102,6 @@ class PengajuanPemusnahanController extends Controller
             }
         }
 
-        // Load asset (not soft-deleted) and validate it belongs to the submitted sekolah,
-        // and that requested quantity does not exceed available stock.
         $aset = Aset::where('id', $request->aset_id)
             ->whereNull('deleted_at')
             ->first();
@@ -126,8 +124,6 @@ class PengajuanPemusnahanController extends Controller
             ]);
         }
 
-        // Simpan file dulu di luar transaction/retry-loop supaya tidak
-        // terupload berkali-kali jika terjadi retry akibat bentrok nomor_pengajuan.
         $dokumenPath = null;
         if ($request->hasFile('dokumen_pendukung')) {
             $dokumenPath = $request->file('dokumen_pendukung')
@@ -150,7 +146,7 @@ class PengajuanPemusnahanController extends Controller
                     'jumlah_diajukan'    => $request->jumlah_diajukan,
                     'keterangan'         => $request->keterangan,
                     'dokumen_pendukung'  => $dokumenPath,
-                    'status'             => 'menunggu',
+                    'status'             => 'diajukan',
                 ]);
 
                 DB::commit();
@@ -217,7 +213,7 @@ class PengajuanPemusnahanController extends Controller
     // ── EDIT ───────────────────────────────────────────────────────────
     public function edit(PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        if ($pengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'diajukan') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat diubah.');
         }
 
@@ -254,7 +250,7 @@ class PengajuanPemusnahanController extends Controller
     // ── UPDATE ─────────────────────────────────────────────────────────
     public function update(Request $request, PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        if ($pengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'diajukan') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat diubah.');
         }
 
@@ -275,7 +271,6 @@ class PengajuanPemusnahanController extends Controller
 
         $user = Auth::user();
 
-        // Enforce operator_sekolah can only edit into their own school
         if ($user->hasRole('operator_sekolah')) {
             $ownSekolah = Sekolah::where('operator_id', $user->id)->first();
             if (!$ownSekolah || (int) $request->sekolah_id !== (int) $ownSekolah->id) {
@@ -345,7 +340,7 @@ class PengajuanPemusnahanController extends Controller
     // ── DESTROY ────────────────────────────────────────────────────────
     public function destroy(PengajuanPemusnahan $pengajuanPemusnahan)
     {
-        if ($pengajuanPemusnahan->status !== 'menunggu') {
+        if ($pengajuanPemusnahan->status !== 'diajukan') {
             return back()->with('error', 'Pengajuan yang sudah divalidasi tidak dapat dihapus.');
         }
 
@@ -359,50 +354,86 @@ class PengajuanPemusnahanController extends Controller
         return back()->with('success', 'Pengajuan berhasil dihapus.');
     }
 
-    // ── VALIDASI (Admin: proses | Kepala Dinas: setujui/tolak) ────────
+    // ── VALIDASI (PERBAIKAN BUG) ───────────────────────────────────────
     public function validasi(Request $request, PengajuanPemusnahan $pengajuanPemusnahan)
     {
         $user = Auth::user();
 
-        if ($user->hasRole('admin')) {
-            if ($pengajuanPemusnahan->status !== 'menunggu') {
-                return back()->with('error', 'Hanya pengajuan berstatus "Menunggu" yang dapat diproses.');
+        // 1. Validasi input dari Modal (bisa berupa 'diproses', 'disetujui', atau 'ditolak')
+        $request->validate([
+            'status'           => 'required|in:diproses,disetujui,ditolak',
+            'catatan_validasi' => 'nullable|string|max:500',
+        ]);
+
+        // 2. Skenario: Mengubah status dari 'diajukan' menjadi 'diproses'
+        if ($request->status === 'diproses') {
+            if (!$user->hasRole('admin')) {
+                abort(403, 'Hanya Admin yang dapat memproses pengajuan ini.');
+            }
+            if ($pengajuanPemusnahan->status !== 'diajukan') {
+                return back()->with('error', 'Hanya pengajuan berstatus "Diajukan" yang dapat diproses.');
+            }
+        }
+
+        // 3. Skenario: Mengubah status dari 'diproses' menjadi 'disetujui' atau 'ditolak'
+        if (in_array($request->status, ['disetujui', 'ditolak'])) {
+            // Hanya Admin yang boleh menyetujui/menolak — Kepala Dinas hanya melihat.
+            if (!$user->hasRole('admin')) {
+                abort(403, 'Anda tidak memiliki izin untuk menyetujui atau menolak pengajuan.');
+            }
+            if ($pengajuanPemusnahan->status !== 'diproses') {
+                return back()->with('error', 'Hanya pengajuan berstatus "Diproses" yang dapat disetujui atau ditolak.');
+            }
+        }
+
+        // 4. Update data ke database. Jika disetujui, stok aset dikurangi
+        //    sejumlah yang diajukan (dikunci baris asetnya supaya aman dari
+        //    persetujuan lain yang bersamaan).
+        DB::beginTransaction();
+        try {
+            if ($request->status === 'disetujui') {
+                $aset = Aset::where('id', $pengajuanPemusnahan->aset_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$aset) {
+                    DB::rollBack();
+                    return back()->with('error', 'Aset terkait tidak ditemukan, pengajuan tidak dapat disetujui.');
+                }
+
+                if ($aset->jumlah < $pengajuanPemusnahan->jumlah_diajukan) {
+                    DB::rollBack();
+                    return back()->with('error', "Stok aset tidak mencukupi (tersisa {$aset->jumlah}, diajukan {$pengajuanPemusnahan->jumlah_diajukan}).");
+                }
+
+                $aset->decrement('jumlah', $pengajuanPemusnahan->jumlah_diajukan);
             }
 
             $pengajuanPemusnahan->update([
-                'status'           => 'diproses',
+                'status'           => $request->status,
                 'divalidasi_oleh'  => $user->id,
                 'catatan_validasi' => $request->catatan_validasi,
                 'tanggal_validasi' => now(),
             ]);
 
-            return back()->with('success', 'Pengajuan berhasil diproses dan diteruskan ke Kepala Dinas.');
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal memvalidasi pengajuan penghapusan', [
+                'pengajuan_id' => $pengajuanPemusnahan->id,
+                'user_id'      => $user->id,
+                'error'        => $e->getMessage(),
+            ]);
+            return back()->with('error', 'Gagal memproses validasi. Silakan coba lagi atau hubungi administrator.');
         }
 
-        // Only kepala_dinas may approve/reject — explicit allow-list instead of
-        // an implicit "not admin" fallthrough.
-        if (!$user->hasRole('kepala_dinas')) {
-            abort(403, 'Anda tidak memiliki izin untuk melakukan aksi ini.');
+        // 5. Pesan sukses yang dinamis
+        $pesan = 'Pengajuan berhasil ' . $request->status . '.';
+        if ($request->status === 'diproses') {
+            $pesan = 'Pengajuan berhasil diproses dan diteruskan untuk persetujuan akhir.';
         }
 
-        $request->validate([
-            'status'           => 'required|in:disetujui,ditolak',
-            'catatan_validasi' => 'nullable|string|max:500',
-        ]);
-
-        if ($pengajuanPemusnahan->status !== 'diproses') {
-            return back()->with('error', 'Hanya pengajuan berstatus "Diproses" yang dapat disetujui atau ditolak.');
-        }
-
-        $pengajuanPemusnahan->update([
-            'status'           => $request->status,
-            'divalidasi_oleh'  => $user->id,
-            'catatan_validasi' => $request->catatan_validasi,
-            'tanggal_validasi' => now(),
-        ]);
-
-        $label = $request->status === 'disetujui' ? 'disetujui' : 'ditolak';
-        return back()->with('success', "Pengajuan berhasil {$label}.");
+        return back()->with('success', $pesan);
     }
 
     // ── EXPORT EXCEL ───────────────────────────────────────────────────
