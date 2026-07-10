@@ -66,7 +66,9 @@
 
                                             {{-- Delete --}}
                                             <form action="{{ route('kecamatan.destroy', $k->id) }}" method="POST"
-                                                onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                                class="js-confirm-delete"
+                                                data-confirm-title="Hapus data kecamatan?"
+                                                data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
                                                 @csrf
                                                 @method('DELETE')
 

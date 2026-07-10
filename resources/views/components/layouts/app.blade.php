@@ -50,6 +50,59 @@
   <script src="{{ asset('template/assets/libs/apexcharts/dist/apexcharts.min.js') }}"></script>
   <script src="{{ asset('template/assets/libs/simplebar/dist/simplebar.js') }}"></script>
   <script src="{{ asset('template/assets/js/dashboard.js') }}"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var Popup = Swal.mixin({
+        position: 'center',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+      });
+
+      @if (session('success'))
+        Popup.fire({ icon: 'success', title: @json(session('success')) });
+      @endif
+
+      @if (session('error'))
+        Popup.fire({ icon: 'error', title: @json(session('error')), timer: 3500 });
+      @endif
+
+      @if ($errors->any())
+        Swal.fire({
+          icon: 'error',
+          title: 'Terjadi kesalahan',
+          html: @json(implode('<br>', $errors->all())),
+          confirmButtonColor: '#7f2600',
+        });
+      @endif
+
+      // Konfirmasi hapus untuk semua form ber-class .js-confirm-delete
+      document.querySelectorAll('form.js-confirm-delete').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+          if (form.dataset.confirmed === 'true') return;
+          e.preventDefault();
+          Swal.fire({
+            title: form.dataset.confirmTitle || 'Yakin ingin menghapus?',
+            text: form.dataset.confirmText || 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#7f2600',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: form.dataset.confirmButton || 'Ya, hapus',
+            cancelButtonText: 'Batal',
+          }).then(function (result) {
+            if (result.isConfirmed) {
+              form.dataset.confirmed = 'true';
+              form.submit();
+            }
+          });
+        });
+      });
+    });
+  </script>
   @stack('scripts')
 </body>
 

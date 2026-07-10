@@ -12,19 +12,6 @@
         </a>
     </div>
 
-    @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show">
-        <i class="ti ti-circle-check me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show">
-        <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
-
     <div class="row g-4">
         {{-- Info Pengajuan --}}
         <div class="col-lg-8">
@@ -185,7 +172,9 @@
                             <i class="ti ti-edit me-1"></i> Edit
                         </a>
                         <form action="{{ route('pengajuan-penghapusan-asset.destroy', $pengajuan) }}"
-                              method="POST" onsubmit="return confirm('Hapus pengajuan ini?')" class="flex-fill">
+                              method="POST" class="flex-fill js-confirm-delete"
+                              data-confirm-title="Hapus pengajuan?"
+                              data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
                             @csrf @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm w-100">
                                 <i class="ti ti-trash me-1"></i> Hapus

@@ -20,7 +20,10 @@
                 </a>
                 @if ($aset->isNotEmpty())
                     <form action="{{ route('aset.emptyTrash') }}" method="POST"
-                          onsubmit="return confirm('Hapus semua aset secara permanen? Tindakan ini tidak bisa dibatalkan.')">
+                          class="js-confirm-delete"
+                          data-confirm-title="Kosongkan tempat sampah?"
+                          data-confirm-text="Semua aset akan dihapus permanen dan tidak bisa dikembalikan."
+                          data-confirm-button="Ya, hapus permanen">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm">
@@ -31,13 +34,6 @@
             </div>
         </div>
 
-        {{-- Alert --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="ti ti-circle-check me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
 
         {{-- Info banner --}}
         <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
@@ -107,7 +103,10 @@
 
                                             {{-- Hapus Permanen --}}
                                             <form action="{{ route('aset.forceDelete', $item->id) }}" method="POST"
-                                                  onsubmit="return confirm('Hapus permanen aset ini? Data tidak bisa dikembalikan.')">
+                                                  class="js-confirm-delete"
+                                                  data-confirm-title="Hapus permanen aset ini?"
+                                                  data-confirm-text="Data tidak bisa dikembalikan setelah dihapus."
+                                                  data-confirm-button="Ya, hapus permanen">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"

@@ -11,17 +11,6 @@
             </div>
         </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show">
-                <strong><i class="ti ti-alert-circle me-1"></i>Terdapat kesalahan input:</strong>
-                <ul class="mb-0 mt-2 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
 
         <div class="card shadow-none border">
             <div class="card-body p-4">
@@ -76,13 +65,12 @@
                             @error('aset_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <div class="form-text" id="stokInfo"></div>
                         </div>
 
-                        {{-- Stok Tersedia --}}
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Stok Tersedia</label>
-                            <input type="text" class="form-control" id="stokTersedia" value=""
-                                placeholder="Pilih aset terlebih dahulu" readonly>
+                            <label class="form-label fw-semibold">Stok Aset</label>
+                            <input type="text" >
                         </div>
 
                         {{-- Metode Penghapusan (fixed: pemusnahan) --}}
@@ -165,7 +153,7 @@
                 const sekolahIdHidden = document.getElementById('sekolahIdHidden');
                 const selectAset = document.getElementById('selectAset');
                 const jumlahInput = document.getElementById('jumlahDiajukan');
-                const stokTersedia = document.getElementById('stokTersedia');
+                const stokInfo = document.getElementById('stokInfo');
                 const jumlahClientError = document.getElementById('jumlahClientError');
                 const form = document.getElementById('formPengajuan');
                 const btnSubmit = document.getElementById('btnSubmit');
@@ -210,10 +198,10 @@
                     if (selected && selected.value !== '') {
                         const stok = parseInt(selected.dataset.stok || '0', 10);
                         const satuan = selected.dataset.satuan || '';
-                        stokTersedia.value = stok + ' ' + satuan;
+                        stokInfo.textContent = 'Stok tersedia: ' + stok + ' ' + satuan;
                         jumlahInput.max = stok;
                     } else {
-                        stokTersedia.value = '';
+                        stokInfo.textContent = '';
                         jumlahInput.removeAttribute('max');
                     }
                     validateJumlah(isInit);

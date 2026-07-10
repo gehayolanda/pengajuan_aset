@@ -10,15 +10,6 @@
                     @csrf
 
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all( ) as $err)
-                                    <li>{{ $err }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
                     <div class="alert alert-info">
                         <i class="ti ti-info-circle"></i>
                         Akun operator dibuat otomatis.

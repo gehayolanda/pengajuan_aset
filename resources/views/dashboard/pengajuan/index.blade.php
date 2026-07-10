@@ -14,19 +14,6 @@
     @endrole
   </div>
 
-  {{-- Alert --}}
-  @if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-      <i class="ti ti-circle-check me-1"></i> {{ session('success') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  @endif
-  @if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <i class="ti ti-alert-circle me-1"></i> {{ session('error') }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-  @endif
 
   {{-- Filter --}}
   <div class="card border-0 shadow-sm mb-4">
@@ -188,7 +175,9 @@
                     <i class="ti ti-edit"></i>
                   </a>
                   <form action="{{ route('pengajuan-penghapusan-asset.destroy', $item) }}"
-                        method="POST" onsubmit="return confirm('Hapus pengajuan ini?')">
+                        method="POST" class="js-confirm-delete"
+                        data-confirm-title="Hapus pengajuan?"
+                        data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
                     @csrf @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
                       <i class="ti ti-trash"></i>
@@ -226,11 +215,23 @@
       </div>
     </div>
 
-    @if($pengajuans->hasPages())
-    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-end">
-      {{ $pengajuans->links() }}
-    </div>
-    @endif
+    <div class="card-footer bg-white border-top">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small">
+                        Menampilkan
+                        <strong>{{ $pengajuans->firstItem() ?? 0 }}</strong>
+                        -
+                        <strong>{{ $pengajuans->lastItem() ?? 0 }}</strong>
+                        dari
+                        <strong>{{ $pengajuans->total() }}</strong>
+                        data.
+                    </div>
+
+                    <div>
+                        {{ $pengajuans->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
+            </div>
   </div>
 
 </div>

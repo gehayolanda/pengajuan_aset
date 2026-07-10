@@ -7,15 +7,6 @@
 
             <div class="card-body bg-light">
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors as $err)
-                                    <li>{{ $err }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
                     <div class="mb-3">
                         <label class="form-label">Nama Sekolah</label>
                         <input type="text" class="form-control" disabled value="{{ old('nama_sekolah', $sekolah->nama_sekolah) }}"/>

@@ -24,14 +24,6 @@
             </div>
         </div>
 
-        {{-- Alert --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="ti ti-circle-check me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
         {{-- Tabel Aset --}}
         <div class="card">
             <div class="card-body p-0">
@@ -87,7 +79,10 @@
                                                 </a>
                                                 <form action="{{ route('aset.destroy', $item) }}"
                                                       method="POST"
-                                                      onsubmit="return confirm('Hapus aset ini ke tempat sampah?')">
+                                                      class="js-confirm-delete"
+                                                      data-confirm-title="Hapus aset?"
+                                                      data-confirm-text="Aset akan dipindahkan ke tempat sampah."
+                                                      data-confirm-button="Ya, hapus">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
@@ -114,15 +109,23 @@
             </div>
 
             {{-- Pagination --}}
-            @if ($aset->hasPages())
-                <div class="card-footer d-flex align-items-center justify-content-between py-3">
-                    <small class="text-muted">
-                        Menampilkan {{ $aset->firstItem() }}–{{ $aset->lastItem() }}
-                        dari {{ $aset->total() }} aset
-                    </small>
-                    {{ $aset->links() }}
+            <div class="card-footer bg-white border-top">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div class="text-muted small">
+                        Menampilkan
+                        <strong>{{ $aset->firstItem() ?? 0 }}</strong>
+                        -
+                        <strong>{{ $aset->lastItem() ?? 0 }}</strong>
+                        dari
+                        <strong>{{ $aset->total() }}</strong>
+                        data.
+                    </div>
+
+                    <div>
+                        {{ $aset->links('pagination::bootstrap-5') }}
+                    </div>
                 </div>
-            @endif
+            </div>
         </div>
 
     </div>

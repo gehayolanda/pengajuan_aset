@@ -11,17 +11,6 @@
     </div>
   </div>
 
-  @if($errors->any())
-  <div class="alert alert-danger alert-dismissible fade show">
-    <ul class="mb-0">
-      @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-      @endforeach
-    </ul>
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-  @endif
-
   <div class="card shadow-none border">
     <div class="card-body p-4">
       <form action="{{ route('pengajuan-penghapusan-asset.update', $pengajuan) }}" method="POST" enctype="multipart/form-data">

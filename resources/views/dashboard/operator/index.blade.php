@@ -106,7 +106,9 @@
                                         <form
                                             action="{{ route('operator.destroy', $operator->id) }}"
                                             method="POST"
-                                            onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                            class="js-confirm-delete"
+                                            data-confirm-title="Hapus data operator?"
+                                            data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
 
                                             @csrf
                                             @method('DELETE')
