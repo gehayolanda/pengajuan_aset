@@ -20,14 +20,28 @@
                     </div>
                 </div>
 
-                {{-- Button --}}
-                <a href="{{ route('sekolah.create') }}" class="btn btn-primary px-4">
-                    <i class="ti ti-plus me-1"></i>
-                    Tambah Sekolah
-                </a>
+                {{-- Action Buttons --}}
+                <div class="d-flex gap-2 flex-wrap">
+
+                    {{-- Import Excel: tombol memicu file dialog tersembunyi --}}
+                    <form action="{{ route('sekolah.import') }}" method="POST" enctype="multipart/form-data"
+                        id="form-import" class="m-0">
+                        @csrf
+                        <input type="file" name="file" id="input-import" class="d-none" accept=".xlsx,.xls,.csv">
+                        <button type="button" class="btn btn-success px-4"
+                            onclick="document.getElementById('input-import').click()">
+                            <i class="ti ti-upload me-1"></i> Import Excel
+                        </button>
+                    </form>
+
+                    {{-- Tambah Sekolah --}}
+                    <a href="{{ route('sekolah.create') }}" class="btn btn-primary px-4">
+                        <i class="ti ti-plus me-1"></i>
+                        Tambah Sekolah
+                    </a>
+                </div>
             </div>
-             <div class="card border-0 shadow-sm mb-3">
-        <div class="card-body">
+                <div class="card-body">
 
             <form action="{{ route('sekolah') }}" method="GET">
                 <div class="row g-2">
@@ -36,7 +50,7 @@
                             type="text"
                             name="search"
                             class="form-control"
-                            placeholder="Cari nama sekolah atau npsn sekolah..."
+                            placeholder="Cari nama atau npsn..."
                             value="{{ request('search') }}">
                     </div>
 
@@ -55,10 +69,6 @@
                     </div>
                 </div>
             </form>
-
-        </div>
-    </div>
-
         </div>
 
         {{-- Table Card --}}
@@ -150,9 +160,7 @@
 
                                             <form action="{{ route('sekolah.destroy', $s->id) }}"
                                                 method="POST"
-                                                class="js-confirm-delete"
-                                                data-confirm-title="Hapus data sekolah?"
-                                                data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
+                                                class="form-hapus">
 
                                                 @csrf
                                                 @method('DELETE')
@@ -214,4 +222,58 @@
         </div>
 
     </div>
+
+    @push('scripts')
+    <script>
+        // Import Excel: setelah file dipilih, konfirmasi lalu submit otomatis
+        document.getElementById('input-import').addEventListener('change', function () {
+            if (this.files.length === 0) return;
+
+            const namaFile = this.files[0].name;
+            Swal.fire({
+                title: 'Import data sekolah?',
+                text: 'File: ' + namaFile,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, import!',
+                cancelButtonText: 'Batal',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Mengimport data...',
+                        text: 'Mohon tunggu sebentar.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading(),
+                    });
+                    document.getElementById('form-import').submit();
+                } else {
+                    this.value = ''; // reset supaya bisa pilih file yang sama lagi
+                }
+            });
+        });
+
+        // Konfirmasi hapus data sekolah
+        document.querySelectorAll('.form-hapus').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Yakin ingin menghapus data ini?',
+                    text: 'Data yang dihapus tidak bisa dikembalikan!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                }).then(function (result) {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    </script>
+    @endpush
 </x-layouts.app>

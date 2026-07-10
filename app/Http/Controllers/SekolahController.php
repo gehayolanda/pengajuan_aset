@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\SekolahImport;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
 use App\Models\Sekolah;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SekolahController extends Controller
 {
@@ -176,5 +178,26 @@ class SekolahController extends Controller
         });
 
         return redirect()->route('sekolah')->with('success', 'Sekolah berhasil dihapus.');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:5120'
+        ]);
+
+        $import = new SekolahImport;
+        Excel::import($import, $request->file('file'));
+
+        $gagal = $import->failures();
+
+        if ($gagal->isNotEmpty()) {
+            $pesan = $gagal->map(fn ($f) =>
+            'Baris {$f->row()}: ' . implode('.', $f->errors())
+            )->implode('|');
+
+            return back()->with('error', 'Sebagian data gagal - {$pesan}');
+        }
+        return back()->with('success', 'Data Sekolah berhasil diimport.');
     }
 }
