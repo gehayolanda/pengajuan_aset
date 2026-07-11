@@ -70,7 +70,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Stok Aset</label>
-                            <input type="text" >
+                            <input type="text" id="stockAset" class="form-control" readonly>
                         </div>
 
                         {{-- Metode Penghapusan (fixed: pemusnahan) --}}
@@ -149,16 +149,21 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+
                 const selectSekolah = document.getElementById('selectSekolah');
                 const sekolahIdHidden = document.getElementById('sekolahIdHidden');
+
                 const selectAset = document.getElementById('selectAset');
+                const stockAset = document.getElementById('stockAset');
+
                 const jumlahInput = document.getElementById('jumlahDiajukan');
                 const stokInfo = document.getElementById('stokInfo');
                 const jumlahClientError = document.getElementById('jumlahClientError');
+
                 const form = document.getElementById('formPengajuan');
                 const btnSubmit = document.getElementById('btnSubmit');
 
-                const allAsetOptions = Array.from(selectAset.options).slice(1); // exclude placeholder
+                const allAsetOptions = Array.from(selectAset.options).slice(1);
 
                 function currentSekolahId() {
                     if (selectSekolah) return selectSekolah.value;
@@ -167,13 +172,12 @@
                 }
 
                 function filterAsetBySekolah() {
+
                     const sekolahId = currentSekolahId();
                     const previousValue = selectAset.value;
 
-                    // reset options
                     selectAset.innerHTML = '<option value="">-- Pilih Aset --</option>';
 
-                    // PERBAIKAN 1: Jika sekolah belum dipilih (kosong), jangan tampilkan aset apa pun
                     if (sekolahId) {
                         allAsetOptions.forEach(function(opt) {
                             if (opt.dataset.sekolah === sekolahId) {
@@ -182,47 +186,64 @@
                         });
                     }
 
-                    // restore selection if still valid
                     if ([...selectAset.options].some(o => o.value === previousValue)) {
                         selectAset.value = previousValue;
                     } else {
                         selectAset.value = '';
                     }
 
-                    // Panggil update stok (kirim parameter 'true' sebagai tanda inisialisasi awal)
                     updateStokInfoAndMax(true);
                 }
 
                 function updateStokInfoAndMax(isInit = false) {
+
                     const selected = selectAset.options[selectAset.selectedIndex];
+
                     if (selected && selected.value !== '') {
+
                         const stok = parseInt(selected.dataset.stok || '0', 10);
                         const satuan = selected.dataset.satuan || '';
-                        stokInfo.textContent = 'Stok tersedia: ' + stok + ' ' + satuan;
+
+                        stokInfo.textContent = `Stok tersedia: ${stok} ${satuan}`;
+
+                        // isi textbox stok
+                        stockAset.value = `${stok} ${satuan}`;
+
                         jumlahInput.max = stok;
+
                     } else {
+
                         stokInfo.textContent = '';
+                        stockAset.value = '';
+
                         jumlahInput.removeAttribute('max');
                     }
+
                     validateJumlah(isInit);
                 }
 
-                // Tambahkan parameter isInit
                 function validateJumlah(isInit = false) {
-                    const max = jumlahInput.max ? parseInt(jumlahInput.max, 10) : null;
+
+                    const max = jumlahInput.max ?
+                        parseInt(jumlahInput.max, 10) :
+                        null;
+
                     const val = parseInt(jumlahInput.value || '0', 10);
 
                     if (max !== null && val > max) {
+
                         jumlahInput.classList.add('is-invalid');
                         jumlahClientError.classList.add('d-block');
+
                         return false;
+
                     } else {
-                        // PERBAIKAN 2: Jangan hapus is-invalid jika ini adalah proses load awal halaman
-                        // agar pesan error/border merah dari Laravel tidak terhapus paksa.
+
                         if (!isInit) {
                             jumlahInput.classList.remove('is-invalid');
                             jumlahClientError.classList.remove('d-block');
                         }
+
                         return true;
                     }
                 }
@@ -231,26 +252,30 @@
                     selectSekolah.addEventListener('change', filterAsetBySekolah);
                 }
 
-                // Saat user mengubah aset, validasi jalan normal (bukan inisialisasi awal)
-                selectAset.addEventListener('change', () => updateStokInfoAndMax(false));
+                selectAset.addEventListener('change', function() {
+                    updateStokInfoAndMax(false);
+                });
 
-                // Saat user mengetik jumlah, validasi jalan normal
-                jumlahInput.addEventListener('input', () => validateJumlah(false));
+                jumlahInput.addEventListener('input', function() {
+                    validateJumlah(false);
+                });
 
-                // Jalankan fungsi filter pertama kali saat halaman dimuat
                 filterAsetBySekolah();
 
-                // Mencegah klik tombol 2x & validasi sebelum kirim
                 form.addEventListener('submit', function(e) {
+
                     if (!validateJumlah(false)) {
                         e.preventDefault();
                         jumlahInput.focus();
                         return;
                     }
+
                     btnSubmit.disabled = true;
                     btnSubmit.innerHTML =
                         '<span class="spinner-border spinner-border-sm me-1"></span> Mengirim...';
+
                 });
+
             });
         </script>
     @endpush
