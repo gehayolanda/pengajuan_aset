@@ -83,10 +83,10 @@ class OperatorController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        $operator = User::roles('operator_sekolah')->findOrFail($id);
+        $operator = User::role('operator_sekolah')->findOrFail($id);
 
         $operator->delete();
 
-        return redirect('operator')->with('success', 'Berhasil hapus user');
+        return redirect()->route('operator')->with('success', 'Berhasil hapus user');
     }
 }
