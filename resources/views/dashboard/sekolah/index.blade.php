@@ -1,7 +1,7 @@
 <x-layouts.app>
     <div class="container-fluid">
 
-        {{-- Header --}}
+        {{-- Card 1: Header --}}
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
 
@@ -41,37 +41,41 @@
                     </a>
                 </div>
             </div>
-                <div class="card-body">
-
-            <form action="{{ route('sekolah') }}" method="GET">
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <input
-                            type="text"
-                            name="search"
-                            class="form-control"
-                            placeholder="Cari nama atau npsn..."
-                            value="{{ request('search') }}">
-                    </div>
-
-                    <div class="col-md-auto">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-search"></i>
-                            Cari
-                        </button>
-                    </div>
-
-                    <div class="col-md-auto">
-                        <a href="{{ route('sekolah') }}"
-                            class="btn btn-light border">
-                            Reset
-                        </a>
-                    </div>
-                </div>
-            </form>
         </div>
 
-        {{-- Table Card --}}
+        {{-- Card 2: Pencarian --}}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <form action="{{ route('sekolah') }}" method="GET">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input
+                                type="text"
+                                name="search"
+                                class="form-control"
+                                placeholder="Cari nama atau npsn..."
+                                value="{{ request('search') }}">
+                        </div>
+
+                        <div class="col-md-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ti ti-search"></i>
+                                Cari
+                            </button>
+                        </div>
+
+                        <div class="col-md-auto">
+                            <a href="{{ route('sekolah') }}"
+                                class="btn btn-light border">
+                                Reset
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Card 3: Table --}}
         <div class="card border-0 shadow-sm">
             <div class="card-body p-0">
 
@@ -79,7 +83,7 @@
                     <table class="table table-hover align-middle mb-0">
 
                         {{-- Table Head --}}
-                        <thead class="table-light">
+                        <thead class="table-white">
                             <tr class="text-center">
                                 <th width="70">No</th>
                                 <th>Nama Sekolah</th>

@@ -86,7 +86,6 @@
           e.preventDefault();
           Swal.fire({
             title: form.dataset.confirmTitle || 'Yakin ingin menghapus?',
-            text: form.dataset.confirmText || 'Data yang dihapus tidak dapat dikembalikan.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#7f2600',

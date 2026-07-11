@@ -68,7 +68,8 @@
       <form method="GET" action="{{ route('pengajuan-penghapusan-asset.export') }}"
             class="row g-2 align-items-end" id="formExport">
 
-        {{-- Ikut membawa filter status & sekolah yang sedang aktif --}}
+        {{-- Ikut membawa filter yang sedang aktif --}}
+        <input type="hidden" name="search" value="{{ request('search') }}">
         <input type="hidden" name="status" value="{{ request('status') }}">
         <input type="hidden" name="sekolah_id" value="{{ request('sekolah_id') }}">
 
@@ -147,11 +148,9 @@
           <tbody>
             @forelse($pengajuans as $item)
             <tr>
-              {{-- PERBAIKAN 4: Penomoran pagination yang lebih aman dan rapi --}}
               <td class="ps-3 text-muted">{{ $pengajuans->firstItem() + $loop->index }}</td>
               <td>{{ $item->nomor_pengajuan }}</td>
               <td>
-                {{-- PERBAIKAN 3: Nullsafe operator (?->) untuk mencegah error relasi kosong --}}
                 <div>{{ $item->aset?->nama_aset ?? '-' }}</div>
                 <small class="text-muted">{{ $item->aset?->kode_aset ?? '' }}</small>
               </td>
@@ -216,113 +215,106 @@
     </div>
 
     <div class="card-footer bg-white border-top">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-                    <div class="text-muted small">
-                        Menampilkan
-                        <strong>{{ $pengajuans->firstItem() ?? 0 }}</strong>
-                        -
-                        <strong>{{ $pengajuans->lastItem() ?? 0 }}</strong>
-                        dari
-                        <strong>{{ $pengajuans->total() }}</strong>
-                        data.
-                    </div>
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="text-muted small">
+          Menampilkan
+          <strong>{{ $pengajuans->firstItem() ?? 0 }}</strong>
+          -
+          <strong>{{ $pengajuans->lastItem() ?? 0 }}</strong>
+          dari
+          <strong>{{ $pengajuans->total() }}</strong>
+          data.
+        </div>
 
-                    <div>
-                        {{ $pengajuans->links('pagination::bootstrap-5') }}
-                    </div>
+        <div>
+          {{-- FIX: appends query string biar filter tidak hilang saat pindah halaman --}}
+          {{ $pengajuans->appends(request()->query())->links('pagination::bootstrap-5') }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{{-- Modal Proses & Validasi (Admin) — digabung jadi satu loop --}}
+@role('admin')
+@foreach($pengajuans as $item)
+  @if($item->status === 'diajukan')
+  <div class="modal fade" id="modalProses{{ $item->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
+          @csrf @method('PATCH')
+          <input type="hidden" name="status" value="diproses">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="ti ti-settings me-1 text-info"></i> Proses Pengajuan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted mb-3">
+              <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
+            </p>
+            <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+              <i class="ti ti-info-circle"></i>
+              <span>Pengajuan akan berstatus <strong>Diproses</strong>. Anda dapat langsung menyetujui atau menolaknya setelah ini.</span>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Catatan (opsional)</label>
+              <textarea name="catatan_validasi" class="form-control" rows="3"
+                        placeholder="Catatan…"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-info text-white">
+              <i class="ti ti-settings me-1"></i> Proses Pengajuan
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  @elseif($item->status === 'diproses')
+  <div class="modal fade" id="modalValidasi{{ $item->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
+          @csrf @method('PATCH')
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="ti ti-clipboard-check me-1 text-success"></i> Keputusan Pengajuan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted mb-3">
+              <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
+            </p>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Keputusan <span class="text-danger">*</span></label>
+              <div class="d-flex gap-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="status" value="disetujui" id="setuju{{ $item->id }}" required>
+                  <label class="form-check-label text-success fw-medium" for="setuju{{ $item->id }}">Disetujui</label>
                 </div>
-            </div>
-  </div>
-
-</div>
-
-{{-- Modal Proses (Admin: diajukan → diproses) --}}
-@role('admin')
-@foreach($pengajuans as $item)
-@if($item->status === 'diajukan')
-<div class="modal fade" id="modalProses{{ $item->id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
-        @csrf @method('PATCH')
-        {{-- PERBAIKAN 2: Menambahkan input hidden status --}}
-        <input type="hidden" name="status" value="diproses">
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="ti ti-settings me-1 text-info"></i> Proses Pengajuan</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted mb-3">
-            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
-          </p>
-          <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
-            <i class="ti ti-info-circle"></i>
-            <span>Pengajuan akan berstatus <strong>Diproses</strong>. Anda dapat langsung menyetujui atau menolaknya setelah ini.</span>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Catatan (opsional)</label>
-            <textarea name="catatan_validasi" class="form-control" rows="3"
-                      placeholder="Catatan…"></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-info text-white">
-            <i class="ti ti-settings me-1"></i> Proses Pengajuan
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-@endif
-@endforeach
-@endrole
-
-{{-- Modal Validasi (Admin: diproses → disetujui/ditolak) --}}
-@role('admin')
-@foreach($pengajuans as $item)
-@if($item->status === 'diproses')
-<div class="modal fade" id="modalValidasi{{ $item->id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="{{ route('pengajuan-penghapusan-asset.validasi', $item) }}" method="POST">
-        @csrf @method('PATCH')
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="ti ti-clipboard-check me-1 text-success"></i> Keputusan Pengajuan</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted mb-3">
-            <code>{{ $item->nomor_pengajuan }}</code> — {{ $item->aset?->nama_aset ?? '-' }}
-          </p>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Keputusan <span class="text-danger">*</span></label>
-            <div class="d-flex gap-3">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="status" value="disetujui" id="setuju{{ $item->id }}" required>
-                <label class="form-check-label text-success fw-medium" for="setuju{{ $item->id }}">Disetujui</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="status" value="ditolak" id="tolak{{ $item->id }}">
-                <label class="form-check-label text-danger fw-medium" for="tolak{{ $item->id }}">Ditolak</label>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="status" value="ditolak" id="tolak{{ $item->id }}">
+                  <label class="form-check-label text-danger fw-medium" for="tolak{{ $item->id }}">Ditolak</label>
+                </div>
               </div>
             </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Catatan</label>
+              <textarea name="catatan_validasi" class="form-control" rows="3" placeholder="Opsional…"></textarea>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Catatan</label>
-            <textarea name="catatan_validasi" class="form-control" rows="3" placeholder="Opsional…"></textarea>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Keputusan</button>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan Keputusan</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
-@endif
+  @endif
 @endforeach
 @endrole
 
@@ -339,7 +331,6 @@
       fields.forEach(function (el) {
         const active = el.dataset.mode === mode;
         el.classList.toggle('d-none', !active);
-        // Nonaktifkan input yang tersembunyi agar tidak ikut terkirim
         el.querySelectorAll('input, select').forEach(function (input) {
           input.disabled = !active;
         });
