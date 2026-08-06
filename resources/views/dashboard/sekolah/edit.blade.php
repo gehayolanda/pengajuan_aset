@@ -1,8 +1,10 @@
 <x-layouts.app>
     <div class="container-fluid">
         <div class="card shadow-sm">
-            <div class="card-header">
-                <h3 class="card-title p-4 rounded mb-0 text-white bg-primary">Perbarui Data Sekolah {{ $sekolah->nama_sekolah }}</h3>
+           <div class="card-header">
+                <h3 class="card-title p-4 rounded mb-0 text-white" style="background-color: #7f2600;">
+                    Perbarui Data Sekolah {{ $sekolah->nama_sekolah }}
+                </h3>
             </div>
             <div class="card-body bg-light">
                 <form action="{{ route('sekolah.update', $sekolah->id) }}" method="POST">

@@ -75,12 +75,17 @@ class SekolahController extends Controller
             "jenjang_sekolah" => "nullable|in:PAUD,SD,SMP",
             "scope_pengelola" => "nullable|in:kecamatan,kabupaten",
             "operator_id" => "nullable|exists:users,id",
+        ], [
+            "nama_sekolah.required" => "Please fill out this field",
+            "npsn_sekolah.required" => "Please fill out this field",
+            "npsn_sekolah.unique" => "NPSN sudah terdaftar",
+            "alamat_sekolah.required" => "Please fill out this field",
         ]);
 
         DB::transaction(function () use ($request) {
             $operator = User::create([
-                'name' => $request->nama_sekolah,
-                'email' => $request->nama_sekolah . 'sch.id',
+                'name' => "operator " . $request->nama_sekolah,
+                'email' => $request->npsn_sekolah . '@sch.id',
                 'login_id' => $request->npsn_sekolah,
                 'password' => bcrypt($request->npsn_sekolah),
             ]);
@@ -146,23 +151,30 @@ class SekolahController extends Controller
             'kabupaten_id' => 'nullable|exists:kabupaten,id',
             'jenjang_sekolah' => 'required|in:PAUD,SD,SMP',
             'scope_pengelola' => 'required|in:kecamatan,kabupaten',
+        ], [
+            'nama_sekolah.required' => 'Please fill out this field',
+            'npsn_sekolah.required' => 'Please fill out this field',
+            'npsn_sekolah.unique' => 'NPSN sudah terdaftar',
+            'alamat_sekolah.required' => 'Please fill out this field',
+            'jenjang_sekolah.required' => 'Please fill out this field',
+            'scope_pengelola.required' => 'Please fill out this field',
         ]);
 
         DB::transaction(function () use ($request, $sekolah) {
             $sekolah->update($request->only([
                 'nama_sekolah', 'npsn_sekolah', 'alamat_sekolah',
-                'kecamatan_id', 'kabupaten_id', 'jenjang_sekolah', 'scope_pengelolaan',
+                'kecamatan_id', 'kabupaten_id', 'jenjang_sekolah', 'scope_pengelola',
             ]));
 
             if ($sekolah->operator) {
                 $sekolah->operator->update([
-                    'nama' => $request->npsn_sekolah
+                    'name' => "operator " . $request->npsn_sekolah,
                 ]);
             }
         });
 
 
-        return redirect()->route('sekolah')->with('success', 'Sekolah berhasil diperbaharui.');
+        return redirect()->route('sekolah')->with('success', 'Sekolah berhasil diperbarui.');
     }
 
     /**
@@ -193,10 +205,10 @@ class SekolahController extends Controller
 
         if ($gagal->isNotEmpty()) {
             $pesan = $gagal->map(fn ($f) =>
-            'Baris {$f->row()}: ' . implode('.', $f->errors())
-            )->implode('|');
+                "Baris {$f->row()}: " . implode(', ', $f->errors())
+            )->implode(' | ');
 
-            return back()->with('error', 'Sebagian data gagal - {$pesan}');
+            return back()->with('error', "Sebagian data gagal - {$pesan}");
         }
         return back()->with('success', 'Data Sekolah berhasil diimport.');
     }

@@ -87,6 +87,6 @@ class OperatorController extends Controller
 
         $operator->delete();
 
-        return redirect()->route('operator')->with('success', 'Berhasil hapus user');
+        return redirect()->route('operator')->with('success', 'Operator berhasil dihapus');
     }
 }

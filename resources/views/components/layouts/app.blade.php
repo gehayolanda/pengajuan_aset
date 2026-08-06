@@ -74,7 +74,7 @@
         Swal.fire({
           icon: 'error',
           title: 'Terjadi kesalahan',
-          html: @json(implode('<br>', $errors->all())),
+          text: @json($errors->first()),
           confirmButtonColor: '#7f2600',
         });
       @endif
@@ -88,7 +88,7 @@
             title: form.dataset.confirmTitle || 'Yakin ingin menghapus?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#7f2600',
+            confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
             confirmButtonText: form.dataset.confirmButton || 'Ya, hapus',
             cancelButtonText: 'Batal',

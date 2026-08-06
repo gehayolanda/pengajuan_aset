@@ -2,13 +2,15 @@
     {{-- Page Header --}}
     <div class="row mb-4">
         <div class="col-12">
-            <h4 class="fw-semibold mb-1">Dashboard</h4>
-            <p class="text-muted mb-0">
-                Selamat datang, <strong>{{ Auth::user()->name }}</strong>.
-                @role('admin') Anda masuk sebagai <span class="badge bg-primary">Admin</span> @endrole
-                @role('operator_sekolah') Anda masuk sebagai <span class="badge bg-success">Operator Sekolah</span> @endrole
-                @role('kepala_dinas') Anda masuk sebagai <span class="badge bg-warning text-dark">Kepala Dinas</span> @endrole
-            </p>
+            {{-- Greeting --}}
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="mb-1 fw-semibold">
+                Selamat Datang, {{ Auth::user()->name }}
+            </h4>
+            <p class="text-muted mb-0 small">{{ now()->translatedFormat('l, d F Y') }}</p>
+        </div>
+    </div>
         </div>
     </div>
 

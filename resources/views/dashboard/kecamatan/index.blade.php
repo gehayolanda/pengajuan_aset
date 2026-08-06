@@ -21,10 +21,10 @@
                 </div>
 
                 {{-- Button --}}
-                <a href="{{ route('kecamatan.create') }}" class="btn btn-primary px-4">
+                {{-- <a href="{{ route('kecamatan.create') }}" class="btn btn-primary px-4">
                     <i class="ti ti-plus me-1"></i>
                     Tambah Kecamatan
-                </a>
+                </a> --}}
             </div>
         </div>
 
@@ -39,7 +39,7 @@
                                 <th width="70">No</th>
                                 <th>Nama Kecamatan</th>
                                 <th>Nama Kabupaten</th>
-                                <th width="120">Aksi</th>
+                                {{-- <th width="120">Aksi</th> --}}
                             </tr>
                         </thead>
                         <tbody>
@@ -61,13 +61,12 @@
                                         </span>
                                     </td>
 
-                                    <td class="text-center">
+                                    {{-- <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
 
-                                            {{-- Delete --}}
                                             <form action="{{ route('kecamatan.destroy', $k->id) }}" method="POST"
                                                 class="js-confirm-delete"
-                                                data-confirm-title="Hapus data kecamatan?"
+                                                data-confirm-title="Yakin ingin menghapus data ini?"
                                                 data-confirm-text="Data yang dihapus tidak dapat dikembalikan.">
                                                 @csrf
                                                 @method('DELETE')
@@ -77,7 +76,7 @@
                                                 </button>
                                             </form>
                                         </div>
-                                    </td>
+                                    </td> --}}
                                 </tr>
                             @empty
                                 <tr>

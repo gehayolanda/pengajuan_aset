@@ -22,9 +22,9 @@
 
                 {{-- Action Buttons --}}
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="{{ route('aset.trash') }}" class="btn btn-outline-danger px-4">
+                    {{-- <a href="{{ route('aset.trash') }}" class="btn btn-outline-danger px-4">
                         <i class="ti ti-trash me-1"></i> Tempat Sampah
-                    </a>
+                    </a> --}}
                     <a href="{{ route('aset.create') }}" class="btn btn-primary px-4">
                         <i class="ti ti-plus me-1"></i> Tambah Aset
                     </a>
@@ -107,7 +107,7 @@
                                         <div class="d-flex justify-content-center">
                                             @hasanyrole('admin|operator_sekolah')
                                                 @if($item->foto_bukti)
-                                                    <a href="{{ url('public/' . $item->foto_bukti) }}" class="btn btn-primary btn-sm">
+                                                    <a href="{{ url('storage/' . $item->foto_bukti) }}" class="btn btn-primary btn-sm">
                                                         <i class="ti ti-file"></i> Foto Barang
                                                     </a>
                                                 @else
@@ -119,6 +119,11 @@
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
                                             @hasanyrole('admin|operator_sekolah')
+                                                <a href="{{ route('aset.show', $item->id) }}"
+                                                class="btn btn-info btn-sm"
+                                                title="Detail">
+                                                <i class="ti ti-eye"></i>
+                                                </a>
                                                 <a href="{{ route('aset.edit', $item) }}"
                                                    class="btn btn-warning btn-sm"
                                                    title="Edit">
@@ -127,7 +132,7 @@
                                                 <form action="{{ route('aset.destroy', $item) }}"
                                                       method="POST"
                                                       class="js-confirm-delete"
-                                                      data-confirm-title="Hapus aset?"
+                                                      data-confirm-title="Yakin ingin menghapus data ini?"
                                                       data-confirm-text="Aset akan dipindahkan ke tempat sampah."
                                                       data-confirm-button="Ya, hapus">
                                                     @csrf

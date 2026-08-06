@@ -51,21 +51,22 @@ Route::prefix("dashboard")->middleware('auth')->group(function () {
     Route::post('/sekolah/import', [SekolahController::class, 'import'])->name('sekolah.import');
 
     // CRUD Aset
-    Route::prefix('aset')->name('aset.')->group(function () {
-        // Fitur Sampah (harus di atas route {aset})
-        Route::get('/trash', [AsetController::class, 'trash'])->name('trash');
-        Route::post('/empty-trash', [AsetController::class, 'emptyTrash'])->name('emptyTrash');
-        Route::post('/{id}/restore', [AsetController::class, 'restore'])->name('restore');
-        Route::delete('/{id}/force-delete', [AsetController::class, 'forceDelete'])->name('forceDelete');
+Route::prefix('aset')->name('aset.')->group(function () {
+    // Fitur Sampah (harus di atas route {aset})
+    Route::get('/trash', [AsetController::class, 'trash'])->name('trash');
+    Route::post('/empty-trash', [AsetController::class, 'emptyTrash'])->name('emptyTrash');
+    Route::post('/{id}/restore', [AsetController::class, 'restore'])->name('restore');
+    Route::delete('/{id}/force-delete', [AsetController::class, 'forceDelete'])->name('forceDelete');
 
-        // CRUD Biasa
-        Route::get('/', [AsetController::class, 'index'])->name('index');
-        Route::get('/create', [AsetController::class, 'create'])->name('create');
-        Route::post('/store', [AsetController::class, 'store'])->name('store');
-        Route::get('/{aset}/edit', [AsetController::class, 'edit'])->name('edit');
-        Route::put('/{aset}', [AsetController::class, 'update'])->name('update');
-        Route::delete('/{aset}', [AsetController::class, 'destroy'])->name('destroy');
-    });
+    // CRUD Biasa
+    Route::get('/', [AsetController::class, 'index'])->name('index');
+    Route::get('/create', [AsetController::class, 'create'])->name('create');
+    Route::post('/store', [AsetController::class, 'store'])->name('store');
+    Route::get('/{aset}', [AsetController::class, 'show'])->name('show');
+    Route::get('/{aset}/edit', [AsetController::class, 'edit'])->name('edit');
+    Route::put('/{aset}', [AsetController::class, 'update'])->name('update');
+    Route::delete('/{aset}', [AsetController::class, 'destroy'])->name('destroy');
+});
 
     // ── Pengajuan Penghapusan Asset ──────────────────────────────────────
 

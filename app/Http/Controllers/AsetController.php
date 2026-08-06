@@ -22,7 +22,7 @@ class AsetController extends Controller
             $query->where('sekolah_id', $sekolah?->id);
         }
 
-        $aset = $query->paginate(15);
+        $aset = $query->paginate(10);
 
         return view('dashboard.data_asset.index', compact('aset'));
     }
@@ -96,6 +96,23 @@ class AsetController extends Controller
 
         return redirect()->route('aset.index')
             ->with('success', 'Aset berhasil ditambahkan.');
+    }
+
+    // -------------------------------------------------------
+    // Detail aset
+    // -------------------------------------------------------
+    public function show(Aset $aset)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('operator_sekolah')) {
+            $sekolah = \App\Models\Sekolah::where('operator_id', $user->id)->firstOrFail();
+            if ($aset->sekolah_id !== $sekolah->id) abort(403);
+        }
+
+        $aset->load('sekolah');
+
+        return view('dashboard.data_asset.show', compact('aset'));
     }
 
     // -------------------------------------------------------
@@ -175,7 +192,7 @@ class AsetController extends Controller
         $aset->delete(); // hanya mengisi kolom deleted_at, data tetap ada di DB
 
         return redirect()->route('aset.index')
-            ->with('success', 'Aset berhasil dihapus dan dipindahkan ke tempat sampah.');
+            ->with('success', 'Aset berhasil dihapus.');
     }
 
     // -------------------------------------------------------
@@ -193,23 +210,23 @@ class AsetController extends Controller
     // -------------------------------------------------------
     // Hapus permanen dari database
     // -------------------------------------------------------
-    public function forceDelete($id)
-    {
-        $aset = Aset::onlyTrashed()->findOrFail($id);
-        $aset->forceDelete(); // benar-benar dihapus dari tabel
+    // public function forceDelete($id)
+    // {
+    //     $aset = Aset::onlyTrashed()->findOrFail($id);
+    //     $aset->forceDelete(); // benar-benar dihapus dari tabel
 
-        return redirect()->route('aset.trash')
-            ->with('success', 'Aset berhasil dihapus secara permanen.');
-    }
+    //     return redirect()->route('aset.trash')
+    //         ->with('success', 'Aset berhasil dihapus secara permanen.');
+    // }
 
-    // -------------------------------------------------------
-    // Kosongkan semua trash (hapus permanen semua aset terhapus)
-    // -------------------------------------------------------
-    public function emptyTrash()
-    {
-        Aset::onlyTrashed()->forceDelete();
+    // // -------------------------------------------------------
+    // // Kosongkan semua trash (hapus permanen semua aset terhapus)
+    // // -------------------------------------------------------
+    // public function emptyTrash()
+    // {
+    //     Aset::onlyTrashed()->forceDelete();
 
-        return redirect()->route('aset.trash')
-            ->with('success', 'Semua aset di tempat sampah telah dihapus permanen.');
-    }
+    //     return redirect()->route('aset.trash')
+    //         ->with('success', 'Semua aset di tempat sampah telah dihapus permanen.');
+    // }
 }
