@@ -58,14 +58,11 @@ class PengajuanPemusnahanController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('operator_sekolah')) {
-            $sekolah = Sekolah::where('operator_id', $user->id)->first();
-            $asets   = Aset::where('sekolah_id', $sekolah?->id)
-                           ->whereNull('deleted_at')
-                           ->orderBy('nama_aset')
-                           ->get();
+            $sekolah = $this->sekolahOperator($user);
+            $asets   = $this->asetLayakPemusnahan($sekolah->id);
             $sekolahs = collect([$sekolah]);
         } else {
-            $asets    = Aset::whereNull('deleted_at')->orderBy('nama_aset')->get();
+            $asets    = $this->asetLayakPemusnahan();
             $sekolahs = Sekolah::orderBy('nama_sekolah')->get();
         }
 
@@ -76,7 +73,9 @@ class PengajuanPemusnahanController extends Controller
             'tukar_tambah' => 'Tukar Tambah',
         ];
 
-        return view('dashboard.pengajuan.create', compact('asets', 'sekolahs', 'metodes'));
+        $batasTahunPemusnahan = now()->year - 5;
+
+        return view('dashboard.pengajuan.create', compact('asets', 'sekolahs', 'metodes', 'batasTahunPemusnahan'));
     }
 
     // ── STORE ──────────────────────────────────────────────────────────
@@ -88,6 +87,8 @@ class PengajuanPemusnahanController extends Controller
             'alasan_penghapusan'  => 'required|string|max:255',
             'metode_penghapusan'  => 'required|in:pemusnahan,lelang,hibah,tukar_tambah',
             'jumlah_diajukan'     => 'required|integer|min:1',
+            'surat_pengajuan'     => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'berita_acara'        => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'keterangan'          => 'nullable|string',
             'dokumen_pendukung'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -96,8 +97,8 @@ class PengajuanPemusnahanController extends Controller
 
         // Enforce operator_sekolah can only submit for their own school
         if ($user->hasRole('operator_sekolah')) {
-            $ownSekolah = Sekolah::where('operator_id', $user->id)->first();
-            if (!$ownSekolah || (int) $request->sekolah_id !== (int) $ownSekolah->id) {
+            $ownSekolah = $this->sekolahOperator($user);
+            if ((int) $request->sekolah_id !== (int) $ownSekolah->id) {
                 abort(403, 'Anda hanya dapat mengajukan penghapusan untuk sekolah Anda sendiri.');
             }
         }
@@ -109,6 +110,12 @@ class PengajuanPemusnahanController extends Controller
         if (!$aset) {
             throw ValidationException::withMessages([
                 'aset_id' => 'Aset tidak ditemukan atau sudah dihapus.',
+            ]);
+        }
+
+        if (!$aset->dapatDiajukanPemusnahan()) {
+            throw ValidationException::withMessages([
+                'aset_id' => 'Aset baru dapat diajukan setelah berusia minimal 5 tahun sejak tahun pengadaan.',
             ]);
         }
 
@@ -124,11 +131,7 @@ class PengajuanPemusnahanController extends Controller
             ]);
         }
 
-        $dokumenPath = null;
-        if ($request->hasFile('dokumen_pendukung')) {
-            $dokumenPath = $request->file('dokumen_pendukung')
-                ->store('pengajuan-penghapusan', 'public');
-        }
+        $filePaths = $this->uploadPengajuanFiles($request);
 
         $attempt = 0;
 
@@ -144,8 +147,10 @@ class PengajuanPemusnahanController extends Controller
                     'alasan_penghapusan' => $request->alasan_penghapusan,
                     'metode_penghapusan' => $request->metode_penghapusan,
                     'jumlah_diajukan'    => $request->jumlah_diajukan,
+                    'surat_pengajuan'    => $filePaths['surat_pengajuan'] ?? null,
+                    'berita_acara'       => $filePaths['berita_acara'] ?? null,
                     'keterangan'         => $request->keterangan,
-                    'dokumen_pendukung'  => $dokumenPath,
+                    'dokumen_pendukung'  => $filePaths['dokumen_pendukung'] ?? null,
                     'status'             => 'diajukan',
                 ]);
 
@@ -167,9 +172,7 @@ class PengajuanPemusnahanController extends Controller
                     continue; // coba lagi dengan nomor baru
                 }
 
-                if ($dokumenPath) {
-                    Storage::disk('public')->delete($dokumenPath);
-                }
+                $this->deleteUploadedFiles($filePaths);
 
                 Log::error('Gagal membuat pengajuan penghapusan', [
                     'user_id' => Auth::id(),
@@ -181,9 +184,7 @@ class PengajuanPemusnahanController extends Controller
             } catch (\Throwable $e) {
                 DB::rollBack();
 
-                if ($dokumenPath) {
-                    Storage::disk('public')->delete($dokumenPath);
-                }
+                $this->deleteUploadedFiles($filePaths);
 
                 Log::error('Gagal membuat pengajuan penghapusan', [
                     'user_id' => Auth::id(),
@@ -224,11 +225,17 @@ class PengajuanPemusnahanController extends Controller
 
         $user = Auth::user();
         if ($user->hasRole('operator_sekolah')) {
-            $sekolah  = Sekolah::where('operator_id', $user->id)->first();
-            $asets    = Aset::where('sekolah_id', $sekolah?->id)->whereNull('deleted_at')->orderBy('nama_aset')->get();
+            $sekolah  = $this->sekolahOperator($user);
+            $asets    = $this->asetLayakPemusnahan($sekolah->id);
+            if ($pengajuanPemusnahan->aset && !$pengajuanPemusnahan->aset->dapatDiajukanPemusnahan() && !$asets->contains('id', $pengajuanPemusnahan->aset->id)) {
+                $asets = $asets->prepend($pengajuanPemusnahan->aset);
+            }
             $sekolahs = collect([$sekolah]);
         } else {
-            $asets    = Aset::whereNull('deleted_at')->orderBy('nama_aset')->get();
+            $asets    = $this->asetLayakPemusnahan();
+            if ($pengajuanPemusnahan->aset && !$pengajuanPemusnahan->aset->dapatDiajukanPemusnahan() && !$asets->contains('id', $pengajuanPemusnahan->aset->id)) {
+                $asets = $asets->prepend($pengajuanPemusnahan->aset);
+            }
             $sekolahs = Sekolah::orderBy('nama_sekolah')->get();
         }
 
@@ -239,11 +246,14 @@ class PengajuanPemusnahanController extends Controller
             'tukar_tambah' => 'Tukar Tambah',
         ];
 
+        $batasTahunPemusnahan = now()->year - 5;
+
         return view('dashboard.pengajuan.edit', [
             'pengajuan' => $pengajuanPemusnahan,
             'asets'     => $asets,
             'sekolahs'  => $sekolahs,
             'metodes'   => $metodes,
+            'batasTahunPemusnahan' => $batasTahunPemusnahan,
         ]);
     }
 
@@ -265,6 +275,8 @@ class PengajuanPemusnahanController extends Controller
             'alasan_penghapusan'  => 'required|string|max:255',
             'metode_penghapusan'  => 'required|in:pemusnahan,lelang,hibah,tukar_tambah',
             'jumlah_diajukan'     => 'required|integer|min:1',
+            'surat_pengajuan'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'berita_acara'        => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'keterangan'          => 'nullable|string',
             'dokumen_pendukung'   => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
@@ -272,8 +284,8 @@ class PengajuanPemusnahanController extends Controller
         $user = Auth::user();
 
         if ($user->hasRole('operator_sekolah')) {
-            $ownSekolah = Sekolah::where('operator_id', $user->id)->first();
-            if (!$ownSekolah || (int) $request->sekolah_id !== (int) $ownSekolah->id) {
+            $ownSekolah = $this->sekolahOperator($user);
+            if ((int) $request->sekolah_id !== (int) $ownSekolah->id) {
                 abort(403, 'Anda hanya dapat mengubah pengajuan untuk sekolah Anda sendiri.');
             }
         }
@@ -285,6 +297,12 @@ class PengajuanPemusnahanController extends Controller
         if (!$aset) {
             throw ValidationException::withMessages([
                 'aset_id' => 'Aset tidak ditemukan atau sudah dihapus.',
+            ]);
+        }
+
+        if (!$aset->dapatDiajukanPemusnahan()) {
+            throw ValidationException::withMessages([
+                'aset_id' => 'Aset baru dapat diajukan setelah berusia minimal 5 tahun sejak tahun pengadaan.',
             ]);
         }
 
@@ -302,31 +320,33 @@ class PengajuanPemusnahanController extends Controller
 
         DB::beginTransaction();
         try {
-            $dokumenPath = $pengajuanPemusnahan->dokumen_pendukung;
+            $oldPaths = [
+                'surat_pengajuan'   => $pengajuanPemusnahan->surat_pengajuan,
+                'berita_acara'      => $pengajuanPemusnahan->berita_acara,
+                'dokumen_pendukung' => $pengajuanPemusnahan->dokumen_pendukung,
+            ];
+            $uploadedPaths = $this->uploadPengajuanFiles($request);
 
-            if ($request->hasFile('dokumen_pendukung')) {
-                if ($dokumenPath) {
-                    Storage::disk('public')->delete($dokumenPath);
-                }
-                $dokumenPath = $request->file('dokumen_pendukung')
-                    ->store('pengajuan-penghapusan', 'public');
-            }
-
-            $pengajuanPemusnahan->update([
+            $pengajuanPemusnahan->update(array_merge([
                 'aset_id'            => $request->aset_id,
                 'sekolah_id'         => $request->sekolah_id,
                 'alasan_penghapusan' => $request->alasan_penghapusan,
                 'metode_penghapusan' => $request->metode_penghapusan,
                 'jumlah_diajukan'    => $request->jumlah_diajukan,
                 'keterangan'         => $request->keterangan,
-                'dokumen_pendukung'  => $dokumenPath,
-            ]);
+            ], $uploadedPaths));
 
             DB::commit();
+
+            $this->deleteReplacedFiles($oldPaths, $uploadedPaths);
+
             return redirect()->route('pengajuan-penghapusan-asset.index')
                 ->with('success', 'Pengajuan berhasil diperbarui.');
         } catch (\Throwable $e) {
             DB::rollBack();
+
+            $this->deleteUploadedFiles($uploadedPaths ?? []);
+
             Log::error('Gagal memperbarui pengajuan penghapusan', [
                 'pengajuan_id' => $pengajuanPemusnahan->id,
                 'user_id'      => Auth::id(),
@@ -545,5 +565,57 @@ class PengajuanPemusnahanController extends Controller
         }
 
         return [$start, $end, $label];
+    }
+
+    private function sekolahOperator($user): Sekolah
+    {
+        $sekolah = Sekolah::where('operator_id', $user->id)->first();
+
+        if (!$sekolah) {
+            abort(403, 'Akun operator belum terhubung dengan sekolah.');
+        }
+
+        return $sekolah;
+    }
+
+    private function asetLayakPemusnahan(?int $sekolahId = null)
+    {
+        return Aset::layakPemusnahan()
+            ->when($sekolahId !== null, fn ($query) => $query->where('sekolah_id', $sekolahId))
+            ->orderBy('nama_aset')
+            ->get();
+    }
+
+    private function uploadPengajuanFiles(Request $request): array
+    {
+        $paths = [];
+
+        foreach (['surat_pengajuan', 'berita_acara', 'dokumen_pendukung'] as $field) {
+            if ($request->hasFile($field)) {
+                $paths[$field] = $request->file($field)->store('pengajuan-penghapusan', 'public');
+            }
+        }
+
+        return $paths;
+    }
+
+    private function deleteUploadedFiles(array $paths): void
+    {
+        foreach ($paths as $path) {
+            if ($path) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+    }
+
+    private function deleteReplacedFiles(array $oldPaths, array $newPaths): void
+    {
+        foreach ($newPaths as $field => $newPath) {
+            $oldPath = $oldPaths[$field] ?? null;
+
+            if ($oldPath && $oldPath !== $newPath) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
     }
 }

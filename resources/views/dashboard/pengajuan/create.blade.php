@@ -11,6 +11,9 @@
             </div>
         </div>
 
+        <div class="alert alert-info border-0 shadow-sm mb-4">
+            <strong>Aturan pemusnahan:</strong> hanya aset dengan tahun pengadaan maksimal {{ $batasTahunPemusnahan }} yang bisa diajukan.
+        </div>
 
         <div class="card shadow-none border">
             <div class="card-body p-4">
@@ -51,7 +54,7 @@
                             <select name="aset_id" id="selectAset"
                                 class="form-select @error('aset_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Aset --</option>
-                                @foreach ($asets as $a)
+                                @forelse ($asets as $a)
                                     <option value="{{ $a->id }}" data-sekolah="{{ $a->sekolah_id }}"
                                         data-stok="{{ $a->jumlah }}" data-satuan="{{ $a->satuan }}"
                                         {{ old('aset_id') == $a->id ? 'selected' : '' }}>
@@ -59,8 +62,13 @@
                                         @if ($a->kode_aset)
                                             ({{ $a->kode_aset }})
                                         @endif
+                                        @if ($a->tahun_pengadaan)
+                                            - Tahun {{ $a->tahun_pengadaan }}
+                                        @endif
                                     </option>
-                                @endforeach
+                                @empty
+                                    <option value="" disabled>Tidak ada aset yang memenuhi syarat usia 5 tahun.</option>
+                                @endforelse
                             </select>
                             @error('aset_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -113,6 +121,31 @@
                             <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3"
                                 placeholder="Opsional…">{{ old('keterangan') }}</textarea>
                             @error('keterangan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        {{-- Dokumen Pendukung --}}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Surat Pengajuan <span
+                                    class="text-danger">*</span></label>
+                            <input type="file" name="surat_pengajuan"
+                                class="form-control @error('surat_pengajuan') is-invalid @enderror"
+                                accept=".pdf,.jpg,.jpeg,.png" required>
+                            <div class="form-text">Format: PDF, JPG, PNG. Maks 2 MB.</div>
+                            @error('surat_pengajuan')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Berita Acara <span
+                                    class="text-danger">*</span></label>
+                            <input type="file" name="berita_acara"
+                                class="form-control @error('berita_acara') is-invalid @enderror"
+                                accept=".pdf,.jpg,.jpeg,.png" required>
+                            <div class="form-text">Format: PDF, JPG, PNG. Maks 2 MB.</div>
+                            @error('berita_acara')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

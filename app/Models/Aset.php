@@ -25,6 +25,7 @@ class Aset extends Model
 
     protected $casts = [
         'harga_perolehan' => 'decimal:2',
+        'tahun_pengadaan' => 'integer',
         'deleted_at' => 'datetime'
     ];
 
@@ -71,6 +72,18 @@ class Aset extends Model
         return $this->harga_perolehan !== null
             ? 'Rp ' . number_format((float) $this->harga_perolehan, 2, ',', '.')
             : '-';
+    }
+
+    public function dapatDiajukanPemusnahan(): bool
+    {
+        return $this->tahun_pengadaan !== null
+            && (int) $this->tahun_pengadaan <= now()->year - 5;
+    }
+
+    public function scopeLayakPemusnahan($query)
+    {
+        return $query->whereNotNull('tahun_pengadaan')
+            ->where('tahun_pengadaan', '<=', now()->year - 5);
     }
 
     // Prefix kode barang per kategori (format: golongan.bidang.kelompok.sub)

@@ -16,6 +16,10 @@
       <form action="{{ route('pengajuan-penghapusan-asset.update', $pengajuan) }}" method="POST" enctype="multipart/form-data">
         @csrf @method('PUT')
 
+        <div class="alert alert-info border-0 shadow-sm mb-4">
+          <strong>Aturan pemusnahan:</strong> hanya aset dengan tahun pengadaan maksimal {{ $batasTahunPemusnahan }} yang bisa diajukan.
+        </div>
+
         <div class="row g-3">
 
           {{-- Sekolah --}}
@@ -42,13 +46,18 @@
             <label class="form-label fw-semibold">Aset <span class="text-danger">*</span></label>
             <select name="aset_id" class="form-select @error('aset_id') is-invalid @enderror">
               <option value="">-- Pilih Aset --</option>
-              @foreach($asets as $a)
+              @forelse($asets as $a)
                 <option value="{{ $a->id }}" {{ old('aset_id', $pengajuan->aset_id) == $a->id ? 'selected' : '' }}>
                   {{ $a->nama_aset }}
                   @if($a->kode_aset) ({{ $a->kode_aset }}) @endif
                   — Stok: {{ $a->jumlah }} {{ $a->satuan }}
+                  @if($a->tahun_pengadaan)
+                    — Tahun {{ $a->tahun_pengadaan }}
+                  @endif
                 </option>
-              @endforeach
+              @empty
+                <option value="" disabled>Tidak ada aset yang memenuhi syarat usia 5 tahun.</option>
+              @endforelse
             </select>
             @error('aset_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
@@ -91,6 +100,41 @@
             <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror"
                       rows="3">{{ old('keterangan', $pengajuan->keterangan) }}</textarea>
             @error('keterangan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+
+          {{-- Dokumen Pendukung --}}
+          <div class="col-12">
+            <label class="form-label fw-semibold">Surat Pengajuan <span class="text-danger">*</span></label>
+            @if($pengajuan->surat_pengajuan)
+              <div class="mb-2">
+                <a href="{{ asset('storage/' . $pengajuan->surat_pengajuan) }}" target="_blank"
+                   class="btn btn-sm btn-outline-info">
+                  <i class="ti ti-file me-1"></i> Lihat Surat Pengajuan Saat Ini
+                </a>
+              </div>
+            @endif
+            <input type="file" name="surat_pengajuan"
+                   class="form-control @error('surat_pengajuan') is-invalid @enderror"
+                   accept=".pdf,.jpg,.jpeg,.png">
+            <div class="form-text">Kosongkan jika tidak ingin mengubah dokumen. Format: PDF, JPG, PNG. Maks 2 MB.</div>
+            @error('surat_pengajuan') <div class="invalid-feedback">{{ $message }}</div> @enderror
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Berita Acara <span class="text-danger">*</span></label>
+            @if($pengajuan->berita_acara)
+              <div class="mb-2">
+                <a href="{{ asset('storage/' . $pengajuan->berita_acara) }}" target="_blank"
+                   class="btn btn-sm btn-outline-info">
+                  <i class="ti ti-file me-1"></i> Lihat Berita Acara Saat Ini
+                </a>
+              </div>
+            @endif
+            <input type="file" name="berita_acara"
+                   class="form-control @error('berita_acara') is-invalid @enderror"
+                   accept=".pdf,.jpg,.jpeg,.png">
+            <div class="form-text">Kosongkan jika tidak ingin mengubah dokumen. Format: PDF, JPG, PNG. Maks 2 MB.</div>
+            @error('berita_acara') <div class="invalid-feedback">{{ $message }}</div> @enderror
           </div>
 
           {{-- Dokumen Pendukung --}}

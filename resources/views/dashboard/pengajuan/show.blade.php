@@ -52,6 +52,26 @@
                         <dt class="col-sm-4 text-muted">Tanggal Pengajuan</dt>
                         <dd class="col-sm-8">{{ $pengajuan->created_at?->format('d M Y H:i') ?? '-' }}</dd>
 
+                        @if($pengajuan->surat_pengajuan)
+                        <dt class="col-sm-4 text-muted">Surat Pengajuan</dt>
+                        <dd class="col-sm-8">
+                            <a href="{{ asset('storage/' . $pengajuan->surat_pengajuan) }}"
+                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="ti ti-file me-1"></i> Lihat Surat
+                            </a>
+                        </dd>
+                        @endif
+
+                        @if($pengajuan->berita_acara)
+                        <dt class="col-sm-4 text-muted">Berita Acara</dt>
+                        <dd class="col-sm-8">
+                            <a href="{{ asset('storage/' . $pengajuan->berita_acara) }}"
+                               target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="ti ti-file me-1"></i> Lihat Berita Acara
+                            </a>
+                        </dd>
+                        @endif
+
                         @if($pengajuan->dokumen_pendukung)
                         <dt class="col-sm-4 text-muted">Dokumen Pendukung</dt>
                         <dd class="col-sm-8">

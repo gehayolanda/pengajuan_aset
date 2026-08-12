@@ -22,6 +22,8 @@ class PengajuanPemusnahan extends Model
         'metode_penghapusan',
         'jumlah_diajukan',
         'keterangan',
+        'surat_pengajuan',
+        'berita_acara',
         'dokumen_pendukung',
         'status',
         'divalidasi_oleh',
