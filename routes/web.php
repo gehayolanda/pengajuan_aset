@@ -93,6 +93,10 @@ Route::prefix('aset')->name('aset.')->group(function () {
     Route::get('pengajuan/{pengajuanPemusnahan}', [PengajuanPemusnahanController::class, 'show'])
         ->name('pengajuan-penghapusan-asset.show');
 
+    // Berita Acara PDF: semua role yang login
+    Route::get('pengajuan/{pengajuanPemusnahan}/berita-acara', [PengajuanPemusnahanController::class, 'beritaAcara'])
+        ->name('pengajuan-penghapusan-asset.berita-acara');
+
     // Edit, Update, Destroy: hanya operator_sekolah & admin
     Route::middleware(['role:operator_sekolah|admin'])->group(function () {
         Route::get('pengajuan/{pengajuanPemusnahan}/edit', [PengajuanPemusnahanController::class, 'edit'])

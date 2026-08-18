@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Linkxtr\QrCode\Facades\QrCode;
 
 class PengajuanPemusnahanController extends Controller
 {
@@ -205,10 +207,77 @@ class PengajuanPemusnahanController extends Controller
             abort(403);
         }
 
-        $pengajuanPemusnahan->load(['aset', 'sekolah', 'pengaju', 'validator']);
+        $pengajuanPemusnahan->load(['aset.sekolah.kecamatan', 'sekolah.kecamatan', 'pengaju', 'validator']);
         return view('dashboard.pengajuan.show', [
             'pengajuan' => $pengajuanPemusnahan,
         ]);
+    }
+
+    // ── BERITA ACARA (PDF) ────────────────────────────────────────────
+    public function beritaAcara(PengajuanPemusnahan $pengajuanPemusnahan)
+    {
+        $pengajuanPemusnahan->load(['aset.sekolah.kecamatan', 'sekolah.kecamatan', 'pengaju', 'validator']);
+
+        if (Auth::user()->hasRole('operator_sekolah') &&
+            $pengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
+            abort(403);
+        }
+
+        $qrSize = 100;
+        $generateQr = function (string $name, string $role, string $action) use ($pengajuanPemusnahan, $qrSize) {
+            $payload = json_encode([
+                'name'      => $name,
+                'role'      => $role,
+                'pengajuan' => $pengajuanPemusnahan->nomor_pengajuan,
+                'timestamp' => now()->toDateTimeString(),
+                'action'    => $action,
+            ], JSON_UNESCAPED_UNICODE);
+
+            $png = QrCode::format('png')
+                ->size($qrSize)
+                ->margin(2)
+                ->generate($payload);
+
+            $base64 = base64_encode($png);
+
+            return '<img src="data:image/png;base64,' . $base64 . '" width="' . $qrSize . '" height="' . $qrSize . '" />';
+        };
+
+        $qrOperator = $generateQr(
+            $pengajuanPemusnahan->pengaju->name ?? 'Operator',
+            'Operator Sekolah',
+            'Mengajukan'
+        );
+
+        $qrAdmin = $pengajuanPemusnahan->divalidasi_oleh
+            ? $generateQr(
+                $pengajuanPemusnahan->validator->name ?? 'Admin',
+                'Admin',
+                match($pengajuanPemusnahan->status) {
+                    'disetujui' => 'Menyetujui',
+                    'ditolak'   => 'Menolak',
+                    default     => 'Memvalidasi',
+                }
+            )
+            : null;
+
+        $qrKepalaDinas = $pengajuanPemusnahan->status === 'disetujui'
+            ? $generateQr('Kepala Dinas', 'Kepala Dinas', 'Menyetujui')
+            : null;
+
+        $pdf = Pdf::loadView('dashboard.pengajuan.berita-acara', [
+            'pengajuan'     => $pengajuanPemusnahan,
+            'qrOperator'    => $qrOperator,
+            'qrAdmin'       => $qrAdmin,
+            'qrKepalaDinas' => $qrKepalaDinas,
+        ]);
+
+        $pdf->setPaper([0.0, 0.0, 609.45, 935.43], 'portrait');
+        $pdf->setOption('isRemoteEnabled', false);
+
+        $filename = 'berita-acara-' . str_replace('/', '-', $pengajuanPemusnahan->nomor_pengajuan) . '.pdf';
+
+        return $pdf->stream($filename);
     }
 
     // ── EDIT ───────────────────────────────────────────────────────────
