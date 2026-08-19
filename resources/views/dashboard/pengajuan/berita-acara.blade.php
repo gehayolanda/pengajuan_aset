@@ -50,7 +50,7 @@
     /* ── Tanda Tangan ── */
     .ttd-section { margin-top: 20px; }
     .ttd-table { width: 100%; border: none; table-layout: fixed; }
-    .ttd-table td { vertical-align: top; padding: 6px 8px; width: 33.33%; }
+    .ttd-table td { vertical-align: top; padding: 6px 8px; }
     .ttd-label { font-size: 9pt; text-align: center; font-weight: bold; margin-bottom: 4px; }
     .ttd-qr { text-align: center; margin-bottom: 4px; }
     .ttd-qr img { width: 90px; height: 90px; }
@@ -172,8 +172,9 @@
     <div class="ttd-section">
         <table class="ttd-table">
             <tr>
-                {{-- ── Kolom Kiri: Pejabat Pembuat Komitmen (Kepala Dinas) ── --}}
-                <td>
+                <td style="width:50%;"></td>
+                {{-- ── Kolom Kanan: Pejabat Pembuat Komitmen (Kepala Dinas) ── --}}
+                <td style="width:50%;">
                     <div class="ttd-label">Pejabat Pembuat Komitmen</div>
                     @if($pengajuan->status === 'disetujui')
                         <div class="ttd-qr">{!! $qrKepalaDinas !!}</div>
@@ -182,26 +183,6 @@
                     @else
                         <div class="ttd-blank">Menunggu persetujuan</div>
                     @endif
-                </td>
-
-                {{-- ── Kolom Tengah: Validator (Admin) ── --}}
-                <td>
-                    <div class="ttd-label">Validator</div>
-                    @if($pengajuan->divalidasi_oleh)
-                        <div class="ttd-qr">{!! $qrAdmin !!}</div>
-                        <div class="ttd-name">{{ $pengajuan->validator->name ?? 'Admin' }}</div>
-                        <div class="ttd-nip">Divalidasi: {{ $pengajuan->tanggal_validasi?->format('d/m/Y H:i') }}</div>
-                    @else
-                        <div class="ttd-blank">Menunggu validasi</div>
-                    @endif
-                </td>
-
-                {{-- ── Kolom Kanan: Pengaju (Operator Sekolah) ── --}}
-                <td>
-                    <div class="ttd-label">Pengaju</div>
-                    <div class="ttd-qr">{!! $qrOperator !!}</div>
-                    <div class="ttd-name">{{ $pengajuan->pengaju->name ?? '-' }}</div>
-                    <div class="ttd-nip">{{ $pengajuan->sekolah->nama_sekolah ?? '' }}</div>
                 </td>
             </tr>
         </table>

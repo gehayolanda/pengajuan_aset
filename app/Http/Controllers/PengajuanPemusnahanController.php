@@ -218,6 +218,10 @@ class PengajuanPemusnahanController extends Controller
     {
         $pengajuanPemusnahan->load(['aset.sekolah.kecamatan', 'sekolah.kecamatan', 'pengaju', 'validator']);
 
+        if ($pengajuanPemusnahan->status === 'ditolak') {
+            abort(403, 'Berita acara tidak tersedia untuk pengajuan yang ditolak.');
+        }
+
         if (Auth::user()->hasRole('operator_sekolah') &&
             $pengajuanPemusnahan->diajukan_oleh !== Auth::id()) {
             abort(403);
@@ -243,32 +247,12 @@ class PengajuanPemusnahanController extends Controller
             return '<img src="data:image/png;base64,' . $base64 . '" width="' . $qrSize . '" height="' . $qrSize . '" />';
         };
 
-        $qrOperator = $generateQr(
-            $pengajuanPemusnahan->pengaju->name ?? 'Operator',
-            'Operator Sekolah',
-            'Mengajukan'
-        );
-
-        $qrAdmin = $pengajuanPemusnahan->divalidasi_oleh
-            ? $generateQr(
-                $pengajuanPemusnahan->validator->name ?? 'Admin',
-                'Admin',
-                match($pengajuanPemusnahan->status) {
-                    'disetujui' => 'Menyetujui',
-                    'ditolak'   => 'Menolak',
-                    default     => 'Memvalidasi',
-                }
-            )
-            : null;
-
         $qrKepalaDinas = $pengajuanPemusnahan->status === 'disetujui'
             ? $generateQr('Kepala Dinas', 'Kepala Dinas', 'Menyetujui')
             : null;
 
         $pdf = Pdf::loadView('dashboard.pengajuan.berita-acara', [
             'pengajuan'     => $pengajuanPemusnahan,
-            'qrOperator'    => $qrOperator,
-            'qrAdmin'       => $qrAdmin,
             'qrKepalaDinas' => $qrKepalaDinas,
         ]);
 

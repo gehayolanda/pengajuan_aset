@@ -84,10 +84,14 @@
 
                         <dt class="col-sm-4 text-muted">Berita Acara Resmi</dt>
                         <dd class="col-sm-8">
+                            @if($pengajuan->status !== 'ditolak')
                             <a href="{{ route('pengajuan-penghapusan-asset.berita-acara', $pengajuan) }}"
                                target="_blank" class="btn btn-sm btn-success">
                                 <i class="ti ti-file-download me-1"></i> Generate Berita Acara (PDF)
                             </a>
+                            @else
+                            <span class="text-muted">Tidak tersedia untuk pengajuan ditolak</span>
+                            @endif
                         </dd>
                     </dl>
                 </div>
